@@ -1,0 +1,102 @@
+<div class="login">
+  <!-- Left: brand panel -->
+  <section class="login__brand">
+    <div class="login__brand-inner">
+      <img class="brand" src="star-award.png" alt="Star Award" />
+
+      <h1 class="login__headline">Recognise the people who make the difference.</h1>
+      <p class="login__blurb">
+        Nominate a colleague who has lived our Core Values and made an impact worth celebrating.
+      </p>
+    </div>
+  </section>
+
+  <!-- Right: sign-in form -->
+  <section class="login__panel">
+    <div class="login__card">
+      <h2 class="login__title">Sign in</h2>
+      <p class="login__subtitle">Use your Version 1 account to continue.</p>
+
+      @if (errorMessage(); as message) {
+        <p class="login__alert" role="alert">{{ message }}</p>
+      }
+
+      <form class="login__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <div class="field">
+          <label class="field__label" for="email">Work email</label>
+          <input
+            id="email"
+            type="email"
+            class="control"
+            [class.control--invalid]="showError('email')"
+            formControlName="email"
+            autocomplete="username"
+            placeholder="firstname.lastname@version1.com"
+            [attr.aria-invalid]="showError('email')"
+            [attr.aria-describedby]="showError('email') ? 'email-error' : null"
+          />
+          @if (showError('email')) {
+            <p class="field__error" id="email-error">
+              @if (form.controls.email.hasError('required')) {
+                Enter your work email address.
+              } @else {
+                Enter a valid email address.
+              }
+            </p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            class="control"
+            [class.control--invalid]="showError('password')"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            [attr.aria-invalid]="showError('password')"
+            [attr.aria-describedby]="showError('password') ? 'password-error' : null"
+          />
+          @if (showError('password')) {
+            <p class="field__error" id="password-error">Enter your password.</p>
+          }
+        </div>
+
+        <button type="submit" class="btn btn--primary login__submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Signing in…
+          } @else {
+            Sign in
+          }
+        </button>
+      </form>
+
+      <div class="demo">
+        <p class="demo__title">Demo accounts</p>
+        <ul class="demo__list">
+          @for (user of demoUsers; track user.id) {
+            <li>
+              <button
+                type="button"
+                class="demo__item"
+                [class.demo__item--reviewer]="user.role === 'coordinator'"
+                (click)="useDemoAccount(user.email)"
+              >
+                <span class="demo__name">
+                  {{ user.name }}
+                  @if (user.role === 'coordinator') {
+                    <span class="demo__badge">Reviewer</span>
+                  }
+                </span>
+                <span class="demo__email">{{ user.email }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>

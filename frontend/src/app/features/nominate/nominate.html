@@ -1,0 +1,312 @@
+<!-- Banner, styled after the current Microsoft Forms header. -->
+<header class="banner">
+  <div class="banner__inner">
+    <h1 class="banner__title">Nominate a Colleague for a Star Award &ndash; {{ quarter }}</h1>
+    <p class="banner__tagline">Celebrate excellence and elevate meaningful contributions.</p>
+    <p class="banner__links">
+      Full details on the Star Award Programme including guidelines can be found here:
+      <a [href]="programmeUrl" target="_blank" rel="noopener noreferrer">{{ programmeUrl }}</a>
+    </p>
+  </div>
+</header>
+
+@if (receipt(); as confirmation) {
+  <!-- ================= Confirmation ================= -->
+  <div class="page">
+    <section class="confirm" role="status">
+      <span class="confirm__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M4.5 12.5l5 5 10-11"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+
+      <h2 class="confirm__title">Nomination submitted</h2>
+      <p class="confirm__body">
+        Thank you for nominating <strong>{{ confirmedNominee() }}</strong>. A coordinator will
+        review it, and you’ll be notified once a decision has been made.
+      </p>
+
+      <dl class="confirm__reference">
+        <dt>Reference</dt>
+        <dd>{{ confirmation.reference }}</dd>
+      </dl>
+
+      <p class="confirm__note">
+        You’ve used your nomination for {{ quarter }}. If it isn’t approved, you’ll be told why and
+        can submit a replacement while the round is still open.
+      </p>
+    </section>
+  </div>
+} @else {
+  <!-- Privacy notice strip, as on the Microsoft Form. -->
+  <div class="notice">
+    <div class="notice__inner">
+      <p class="notice__text">
+        Hi, {{ firstName() }}. When you submit this form, the owner will see your name and email
+        address.
+      </p>
+      <p class="notice__required"><span aria-hidden="true">*</span> Required</p>
+    </div>
+  </div>
+
+  <!-- ================= Form ================= -->
+  <div class="page">
+    @if (submitError(); as message) {
+      <p class="alert" role="alert">{{ message }}</p>
+    }
+
+    <form class="card" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <!-- 1. Nominee name -->
+      <div class="field">
+        <label class="field__label" for="nomineeName">
+          1. Enter the full name of the colleague you want to nominate
+          <span class="field__required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="nomineeName"
+          type="text"
+          class="control"
+          [class.control--invalid]="showError('nomineeName')"
+          formControlName="nomineeName"
+          autocomplete="off"
+          placeholder="e.g. Jordan Whelan"
+          [attr.aria-invalid]="showError('nomineeName')"
+          [attr.aria-describedby]="showError('nomineeName') ? 'nomineeName-error' : null"
+        />
+        @if (showError('nomineeName')) {
+          <p class="field__error" id="nomineeName-error">
+            @if (form.controls.nomineeName.hasError('required')) {
+              Enter your nominee’s full name.
+            } @else if (form.controls.nomineeName.hasError('minlength')) {
+              That name looks too short — please enter their full name.
+            } @else {
+              That name is too long (120 characters maximum).
+            }
+          </p>
+        }
+      </div>
+
+      <!-- 2. Nominee email -->
+      <div class="field">
+        <label class="field__label" for="nomineeEmail">
+          2. Enter the email address of the colleague you want to nominate
+          <span class="field__required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="nomineeEmail"
+          type="email"
+          class="control"
+          [class.control--invalid]="showError('nomineeEmail')"
+          formControlName="nomineeEmail"
+          autocomplete="off"
+          placeholder="firstname.lastname@version1.com"
+          [attr.aria-invalid]="showError('nomineeEmail')"
+          [attr.aria-describedby]="
+            showError('nomineeEmail') ? 'nomineeEmail-error' : 'nomineeEmail-hint'
+          "
+        />
+        @if (showError('nomineeEmail')) {
+          <p class="field__error" id="nomineeEmail-error">
+            @if (form.controls.nomineeEmail.hasError('required')) {
+              Enter your nominee’s email address.
+            } @else if (form.controls.nomineeEmail.hasError('selfNomination')) {
+              You can’t nominate yourself — enter a colleague’s email address.
+            } @else if (form.controls.nomineeEmail.hasError('wrongDomain')) {
+              Nominees must be colleagues — use a &#64;{{ emailDomain }} address.
+            } @else {
+              Enter a valid email address.
+            }
+          </p>
+        } @else {
+          <p class="field__hint" id="nomineeEmail-hint">
+            Must be a &#64;{{ emailDomain }} address. We’ll use this to notify them if the
+            nomination is approved.
+          </p>
+        }
+      </div>
+
+      <!-- 3. Why — split into WHAT and HOW -->
+      <fieldset class="why">
+        <legend class="field__label why__legend">
+          3. Why are you nominating this colleague?
+          <span class="field__required" aria-hidden="true">*</span>
+        </legend>
+
+        <!-- WHAT -->
+        <div class="field why__part">
+          <label class="why__heading" for="what">What</label>
+          <p class="field__hint" id="what-hint">
+            Describe what your nominee did, the impact of their actions, who was affected, the
+            expected duration of the impact, and any supporting feedback or evidence.
+          </p>
+          <textarea
+            id="what"
+            class="control"
+            [class.control--invalid]="showError('what')"
+            formControlName="what"
+            rows="6"
+            placeholder="What they did, the impact it had, and who benefited…"
+            [attr.aria-invalid]="showError('what')"
+            [attr.aria-describedby]="
+              showError('what') ? 'what-hint what-error what-count' : 'what-hint what-count'
+            "
+          ></textarea>
+          <div class="counter">
+            @if (showError('what')) {
+              <p class="field__error" id="what-error">
+                @if (form.controls.what.hasError('required')) {
+                  Tell us what your nominee did.
+                } @else if (form.controls.what.hasError('minlength')) {
+                  Please give a bit more detail — at least {{ minLength }} characters.
+                } @else {
+                  Your answer is over the {{ maxLength }} character limit.
+                }
+              </p>
+            } @else {
+              <span></span>
+            }
+            <span
+              class="counter__count"
+              [class.counter__count--near]="counterState(whatLength()) === 'near'"
+              [class.counter__count--over]="counterState(whatLength()) === 'over'"
+              id="what-count"
+              aria-live="polite"
+            >
+              {{ whatLength() }} / {{ maxLength }}
+            </span>
+          </div>
+        </div>
+
+        <!-- HOW -->
+        <div class="field why__part">
+          <label class="why__heading" for="how">How</label>
+          <p class="field__hint" id="how-hint">
+            Describe how your nominee has demonstrated at least one of the Core Values from
+            Version 1.
+          </p>
+
+          <ul class="values" aria-label="Version 1 Core Values">
+            @for (value of coreValues; track value) {
+              <li class="values__chip">{{ value }}</li>
+            }
+          </ul>
+
+          <textarea
+            id="how"
+            class="control"
+            [class.control--invalid]="showError('how')"
+            formControlName="how"
+            rows="6"
+            placeholder="Which Core Values they demonstrated, and how…"
+            [attr.aria-invalid]="showError('how')"
+            [attr.aria-describedby]="
+              showError('how') ? 'how-hint how-error how-count' : 'how-hint how-count'
+            "
+          ></textarea>
+          <div class="counter">
+            @if (showError('how')) {
+              <p class="field__error" id="how-error">
+                @if (form.controls.how.hasError('required')) {
+                  Tell us which Core Values your nominee demonstrated.
+                } @else if (form.controls.how.hasError('minlength')) {
+                  Please give a bit more detail — at least {{ minLength }} characters.
+                } @else {
+                  Your answer is over the {{ maxLength }} character limit.
+                }
+              </p>
+            } @else {
+              <span></span>
+            }
+            <span
+              class="counter__count"
+              [class.counter__count--near]="counterState(howLength()) === 'near'"
+              [class.counter__count--over]="counterState(howLength()) === 'over'"
+              id="how-count"
+              aria-live="polite"
+            >
+              {{ howLength() }} / {{ maxLength }}
+            </span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- 4. Category -->
+      <div class="field">
+        <p class="field__label" id="category-label">
+          4. In which category should your nomination be included?
+          <span class="field__required" aria-hidden="true">*</span>
+        </p>
+
+        <div class="categories" role="radiogroup" aria-labelledby="category-label">
+          @for (category of categories; track category.id; let i = $index) {
+            <label class="category" [class.category--selected]="categoryValue() === category.id">
+              <input
+                type="radio"
+                class="category__input"
+                [id]="i === 0 ? 'categoryId' : 'category-' + category.id"
+                formControlName="categoryId"
+                [value]="category.id"
+                [attr.aria-describedby]="'tip-' + category.id"
+              />
+              <span class="category__check" aria-hidden="true"></span>
+              <span class="category__label">{{ category.label }}</span>
+              <span class="category__tip" role="tooltip" [id]="'tip-' + category.id">
+                <span class="category__tip-label">Examples</span>
+                {{ category.examples }}
+              </span>
+            </label>
+          }
+        </div>
+
+        @if (showError('categoryId')) {
+          <p class="field__error" id="categoryId-error">Choose the category that fits best.</p>
+        }
+
+        @if (selectedCategory(); as category) {
+          <p class="examples">
+            <span class="examples__label">Examples</span>
+            {{ category.examples }}
+          </p>
+        }
+      </div>
+
+      <!-- Email receipt -->
+      <label class="checkbox">
+        <input type="checkbox" class="checkbox__input" formControlName="emailReceipt" />
+        <span class="checkbox__label">Send me an email receipt of my responses</span>
+      </label>
+
+      <!-- Auto-captured nominator -->
+      <p class="attribution">
+        Submitting as <strong>{{ nominator()?.name }}</strong> ({{ nominator()?.email }}) —
+        {{ nominator()?.practice }}, {{ nominator()?.location }}. This is recorded automatically.
+      </p>
+
+      <div class="actions">
+        <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+          @if (submitting()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Submitting…
+          } @else {
+            Submit
+          }
+        </button>
+        <button
+          type="button"
+          class="btn btn--secondary"
+          (click)="form.reset()"
+          [disabled]="submitting()"
+        >
+          Clear form
+        </button>
+      </div>
+    </form>
+  </div>
+}

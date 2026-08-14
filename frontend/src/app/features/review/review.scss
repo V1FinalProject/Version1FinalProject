@@ -1,0 +1,140 @@
+:host {
+  display: block;
+  flex: 1;
+}
+
+/* Banner — matches the nomination form's, so the two screens feel like one app. */
+
+.banner {
+  background: var(--brand-navy-900);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.banner__inner {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem 2rem;
+}
+
+.banner__title {
+  font-size: 1.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.banner__tagline {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  color: rgba(234, 240, 249, 0.85);
+}
+
+.page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* Stat tiles -------------------------------------------------------------- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--brand-navy-900);
+}
+
+.stat__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+/* Placeholder for the swipe stack ----------------------------------------- */
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background: var(--surface);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.placeholder__icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 1.25rem;
+  color: var(--brand-teal-700);
+  background: rgba(0, 198, 194, 0.1);
+  border-radius: 50%;
+}
+
+.placeholder__icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.placeholder__title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--brand-navy-900);
+}
+
+.placeholder__body {
+  max-width: 28rem;
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+}
+
+.placeholder__meta {
+  max-width: 28rem;
+  margin-top: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--text-subtle);
+}
+
+@media (max-width: 40rem) {
+  .banner__inner {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  .banner__title {
+    font-size: 1.375rem;
+  }
+
+  .page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .placeholder {
+    padding: 2.5rem 1.25rem;
+  }
+}
