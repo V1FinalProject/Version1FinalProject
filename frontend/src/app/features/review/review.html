@@ -1,0 +1,59 @@
+<header class="banner">
+  <div class="banner__inner">
+    <h1 class="banner__title">Star Award Reviews &ndash; {{ quarter }}</h1>
+    <p class="banner__tagline">
+      Hi, {{ firstName() }}. Review nominations, see the flags, and approve or reject.
+    </p>
+  </div>
+</header>
+
+<div class="page">
+  <div class="stats">
+    <div class="stat">
+      <span class="stat__value">{{ pending.length }}</span>
+      <span class="stat__label">Awaiting review</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">0</span>
+      <span class="stat__label">Approved</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value">0</span>
+      <span class="stat__label">Rejected</span>
+    </div>
+  </div>
+
+  <section class="placeholder">
+    <span class="placeholder__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <rect
+          x="4"
+          y="3"
+          width="16"
+          height="18"
+          rx="2.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+        />
+        <path
+          d="M8 8.5h8M8 12h8M8 15.5h5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </svg>
+    </span>
+    <h2 class="placeholder__title">Swipe review coming next</h2>
+    <p class="placeholder__body">
+      This is where the card stack will live — one nomination at a time, with the ML flags
+      alongside, swipe to approve or reject.
+    </p>
+    <p class="placeholder__meta">
+      Waiting on the backend to serve nominations and flags. The
+      {{ pending.length }} nomination{{ pending.length === 1 ? '' : 's' }} counted above
+      {{ pending.length === 1 ? 'was' : 'were' }} read from local storage, not the API.
+    </p>
+  </section>
+</div>

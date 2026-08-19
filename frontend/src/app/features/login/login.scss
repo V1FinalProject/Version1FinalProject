@@ -1,0 +1,234 @@
+:host {
+  display: block;
+  flex: 1;
+}
+
+.login {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+/* Left panel -------------------------------------------------------------- */
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  padding: 3rem;
+  background: linear-gradient(150deg, var(--brand-navy-900), var(--brand-navy-700) 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Soft gold glow behind the copy. */
+.login__brand::after {
+  content: '';
+  position: absolute;
+  right: -18%;
+  bottom: -22%;
+  width: 32rem;
+  height: 32rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 198, 194, 0.26), transparent 65%);
+  pointer-events: none;
+}
+
+.login__brand-inner {
+  position: relative;
+  max-width: 27rem;
+  margin-left: auto;
+}
+
+.brand {
+  display: block;
+  height: 8.5rem;
+  width: auto;
+  margin-bottom: 2.5rem;
+}
+
+.login__headline {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.login__blurb {
+  font-size: 1.0625rem;
+  color: rgba(234, 240, 249, 0.78);
+}
+
+/* Right panel ------------------------------------------------------------- */
+
+.login__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: var(--page-bg);
+}
+
+.login__card {
+  width: 100%;
+  max-width: 25rem;
+  padding: 2.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.login__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.login__subtitle {
+  margin-top: 0.375rem;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+}
+
+.login__alert {
+  margin-top: 1.25rem;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius);
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.75rem;
+}
+
+.login__submit {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+/* Demo accounts ----------------------------------------------------------- */
+
+.demo {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.demo__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.demo__list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.demo__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-family: inherit;
+  background: var(--surface-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.demo__item:hover {
+  background: var(--surface-sunken);
+  border-color: var(--border-strong);
+}
+
+/* The coordinator account, tinted so it's obvious in a demo that this one is a
+   different role — it's the account the review dashboard will be gated to. */
+.demo__item--reviewer {
+  background: rgba(0, 198, 194, 0.09);
+  border-left: 3px solid var(--brand-teal-500);
+}
+
+.demo__item--reviewer:hover {
+  background: rgba(0, 198, 194, 0.16);
+  border-color: var(--brand-teal-500);
+}
+
+.demo__name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.demo__badge {
+  padding: 0.0625rem 0.4375rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-teal-700);
+  background: var(--surface);
+  border: 1px solid var(--brand-teal-600);
+  border-radius: 999px;
+}
+
+.demo__email {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Responsive -------------------------------------------------------------- */
+
+@media (max-width: 56rem) {
+  .login {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .login__brand {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .login__brand-inner {
+    margin: 0 auto;
+  }
+
+  .brand {
+    height: 6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .login__headline {
+    font-size: 1.75rem;
+  }
+
+  .login__panel {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .login__card {
+    padding: 1.75rem 1.5rem;
+  }
+}
