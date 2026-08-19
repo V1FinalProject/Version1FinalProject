@@ -2,58 +2,259 @@
   <div class="banner__inner">
     <h1 class="banner__title">Star Award Reviews &ndash; {{ quarter }}</h1>
     <p class="banner__tagline">
-      Hi, {{ firstName() }}. Review nominations, see the flags, and approve or reject.
+      Hi, {{ firstName() }}. The flags and Claude&rsquo;s verdict are advisory &mdash; accepting
+      and rejecting is your call, and you can take a decision back.
     </p>
   </div>
 </header>
 
 <div class="page">
+  @if (loadError()) {
+    <p class="alert" role="alert">
+      {{ loadError() }}
+      <button type="button" class="alert__retry" (click)="load()">Retry</button>
+    </p>
+  }
+
   <div class="stats">
     <div class="stat">
-      <span class="stat__value">{{ pending.length }}</span>
-      <span class="stat__label">Awaiting review</span>
+      <span class="stat__value">{{ counts().ALL }}</span>
+      <span class="stat__label">Nominations</span>
     </div>
     <div class="stat">
-      <span class="stat__value">0</span>
-      <span class="stat__label">Approved</span>
+      <span class="stat__value">{{ counts().PENDING }}</span>
+      <span class="stat__label">Pending</span>
     </div>
-    <div class="stat">
-      <span class="stat__value">0</span>
+    <div class="stat stat--accepted">
+      <span class="stat__value">{{ counts().ACCEPTED }}</span>
+      <span class="stat__label">Accepted</span>
+    </div>
+    <div class="stat stat--rejected">
+      <span class="stat__value">{{ counts().REJECTED }}</span>
       <span class="stat__label">Rejected</span>
+    </div>
+    <div class="stat stat--shortlist">
+      <span class="stat__value">{{ counts().SHORTLIST }}</span>
+      <span class="stat__label">Shortlisted</span>
+    </div>
+    <div class="stat stat--flagged">
+      <span class="stat__value">{{ counts().flagged }}</span>
+      <span class="stat__label">Flagged</span>
     </div>
   </div>
 
-  <section class="placeholder">
-    <span class="placeholder__icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
-        <rect
-          x="4"
-          y="3"
-          width="16"
-          height="18"
-          rx="2.5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-        />
-        <path
-          d="M8 8.5h8M8 12h8M8 15.5h5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-        />
-      </svg>
-    </span>
-    <h2 class="placeholder__title">Swipe review coming next</h2>
-    <p class="placeholder__body">
-      This is where the card stack will live — one nomination at a time, with the ML flags
-      alongside, swipe to approve or reject.
-    </p>
-    <p class="placeholder__meta">
-      Waiting on the backend to serve nominations and flags. The
-      {{ pending.length }} nomination{{ pending.length === 1 ? '' : 's' }} counted above
-      {{ pending.length === 1 ? 'was' : 'were' }} read from local storage, not the API.
-    </p>
-  </section>
+  <div class="toolbar">
+    <div class="tabs" role="tablist" aria-label="Filter nominations">
+      @for (tab of tabs; track tab.id) {
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          [class.tab--active]="filter() === tab.id"
+          [attr.aria-selected]="filter() === tab.id"
+          (click)="filter.set(tab.id)"
+        >
+          {{ tab.label }}
+          <span class="tab__count">{{ counts()[tab.id] }}</span>
+        </button>
+      }
+    </div>
+
+    @if (unreviewed().length > 0) {
+      <button
+        type="button"
+        class="btn btn--secondary btn--compact"
+        [disabled]="bulkProgress() !== null"
+        (click)="runAllClaudeReviews()"
+      >
+        @if (bulkProgress(); as progress) {
+          <span class="spinner" aria-hidden="true"></span>
+          Reviewing {{ progress.done }} / {{ progress.total }}
+        } @else {
+          Ask Claude to review {{ unreviewed().length }} unreviewed
+        }
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="empty">Loading nominations&hellip;</p>
+  } @else if (visibleRows().length === 0) {
+    <p class="empty">Nothing here. Try another filter.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="table">
+        <caption class="visually-hidden">
+          Nominations with their flags, Claude&rsquo;s review and your decision
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="col-star"><span class="visually-hidden">Shortlist</span></th>
+            <th scope="col" class="col-id">#</th>
+            <th scope="col">Nominee</th>
+            <th scope="col">Nominator</th>
+            <th scope="col">Category</th>
+            <th scope="col">Flags</th>
+            <th scope="col">Claude review</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="col-actions">Decision</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of visibleRows(); track row.id) {
+            <tr class="row" [class.row--open]="expandedId() === row.id">
+              <td class="col-star">
+                <button
+                  type="button"
+                  class="star"
+                  [class.star--on]="row.favourite"
+                  [disabled]="isBusy(row.id)"
+                  [attr.aria-pressed]="row.favourite"
+                  [attr.aria-label]="
+                    (row.favourite ? 'Remove ' : 'Add ') +
+                    row.nomineeName +
+                    ' to your shortlist'
+                  "
+                  (click)="toggleFavourite(row)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M12 3.5l2.6 5.55 5.9.83-4.28 4.3 1.02 6.07L12 17.4l-5.24 2.85 1.02-6.07L3.5 9.88l5.9-.83z"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </td>
+
+              <td class="col-id">{{ row.id }}</td>
+
+              <td>
+                <button type="button" class="link" (click)="toggleExpanded(row.id)">
+                  {{ row.nomineeName }}
+                  <span class="link__chevron" aria-hidden="true">
+                    {{ expandedId() === row.id ? '▾' : '▸' }}
+                  </span>
+                </button>
+                <span class="cell-sub">{{ row.nomineeEmail }}</span>
+              </td>
+
+              <td>
+                {{ row.nominatorName }}
+                <span class="cell-sub">{{ row.timestamp | date: 'd MMM yyyy' }}</span>
+              </td>
+
+              <td><span class="chip">{{ row.category }}</span></td>
+
+              <td>
+                @if (row.flags.length === 0) {
+                  <span class="cell-none">None</span>
+                } @else {
+                  <div class="flags">
+                    @for (flag of row.flags; track flag.tagName) {
+                      <span class="chip chip--flag" [title]="flag.reasoning">{{ flag.tagName }}</span>
+                    }
+                  </div>
+                }
+              </td>
+
+              <td>
+                @if (row.claudeReview; as review) {
+                  <div class="verdicts">
+                    <span class="verdict" [class.verdict--bad]="!review.isValidNomination">
+                      {{ review.isValidNomination ? '✓' : '✗' }} Genuine
+                    </span>
+                    <span class="verdict" [class.verdict--bad]="!review.isVersion1Values">
+                      {{ review.isVersion1Values ? '✓' : '✗' }} V1 values
+                    </span>
+                  </div>
+                } @else if (isBusy(row.id)) {
+                  <span class="cell-none"><span class="spinner" aria-hidden="true"></span> Asking&hellip;</span>
+                } @else {
+                  <button type="button" class="btn-mini" (click)="runClaudeReview(row)">
+                    Review
+                  </button>
+                }
+              </td>
+
+              <td>
+                <span class="status" [class]="'status--' + row.status.toLowerCase()">
+                  {{ row.status }}
+                </span>
+              </td>
+
+              <td class="col-actions">
+                <div class="actions">
+                  <button
+                    type="button"
+                    class="btn-mini btn-mini--accept"
+                    [class.btn-mini--on]="row.status === 'ACCEPTED'"
+                    [disabled]="isBusy(row.id)"
+                    (click)="decide(row, 'ACCEPTED')"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-mini btn-mini--reject"
+                    [class.btn-mini--on]="row.status === 'REJECTED'"
+                    [disabled]="isBusy(row.id)"
+                    (click)="decide(row, 'REJECTED')"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            @if (expandedId() === row.id) {
+              <tr class="detail-row">
+                <td colspan="9">
+                  <div class="detail">
+                    <div class="detail__narrative">
+                      <h3 class="detail__heading">What they did</h3>
+                      <p class="detail__body">{{ row.what }}</p>
+
+                      @if (row.how) {
+                        <h3 class="detail__heading">How it showed our values</h3>
+                        <p class="detail__body">{{ row.how }}</p>
+                      }
+                    </div>
+
+                    <div class="detail__side">
+                      <h3 class="detail__heading">Flags</h3>
+                      @if (row.flags.length === 0) {
+                        <p class="detail__body detail__body--muted">
+                          No checker raised anything against this nomination.
+                        </p>
+                      } @else {
+                        <ul class="reasons">
+                          @for (flag of row.flags; track flag.tagName) {
+                            <li class="reason">
+                              <span class="chip chip--flag">{{ flag.tagName }}</span>
+                              <span class="reason__text">{{ flag.reasoning }}</span>
+                            </li>
+                          }
+                        </ul>
+                      }
+
+                      <h3 class="detail__heading">Submitted</h3>
+                      <p class="detail__body detail__body--muted">
+                        {{ row.timestamp | date: 'd MMM yyyy, HH:mm' }} by
+                        {{ row.nominatorName }} ({{ row.nominatorEmail }})
+                        @if (row.practice) {
+                          &middot; {{ row.practice }} &middot; {{ row.location }}
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 </div>

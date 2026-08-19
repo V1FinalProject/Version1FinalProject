@@ -38,7 +38,7 @@ public class ClaudeNominationReviewer {
                 """.formatted(nomination.nomineeName(), nomination.category(), nomination.justification());
 
         StructuredMessageCreateParams<ClaudeReviewResult> params = MessageCreateParams.builder()
-                .model("claude-opus-5")
+                .model("claude-haiku-4-5-20251001")
                 .maxTokens(4096L)
                 .system(SYSTEM_PROMPT)
                 .outputConfig(ClaudeReviewResult.class)
