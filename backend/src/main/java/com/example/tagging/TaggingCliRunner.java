@@ -1,5 +1,6 @@
 package com.example.tagging;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -17,10 +18,15 @@ public class TaggingCliRunner implements CommandLineRunner {
 
     private final NominationExcelLoader loader;
     private final TaggingService taggingService;
+    private final ClaudeNominationReviewer claudeReviewer;
+    private final ObjectMapper objectMapper;
 
-    public TaggingCliRunner(NominationExcelLoader loader, TaggingService taggingService) {
+    public TaggingCliRunner(NominationExcelLoader loader, TaggingService taggingService,
+            ClaudeNominationReviewer claudeReviewer, ObjectMapper objectMapper) {
         this.loader = loader;
         this.taggingService = taggingService;
+        this.claudeReviewer = claudeReviewer;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -45,6 +51,7 @@ public class TaggingCliRunner implements CommandLineRunner {
                 }
 
                 printFlags(target.get(), nominations);
+                printClaudeReview(target.get());
             }
         }
 
@@ -73,6 +80,17 @@ public class TaggingCliRunner implements CommandLineRunner {
             for (FlagResult flag : flags) {
                 System.out.println("- [" + flag.tagName() + "] " + flag.reasoning());
             }
+        }
+        System.out.println();
+    }
+
+    private void printClaudeReview(Nomination nomination) {
+        System.out.println("Asking Claude to review nomination #" + nomination.id() + "...");
+        try {
+            ClaudeReviewResult result = claudeReviewer.review(nomination);
+            System.out.println(objectMapper.writeValueAsString(result));
+        } catch (Exception e) {
+            System.out.println("Claude review failed: " + e.getMessage());
         }
         System.out.println();
     }
