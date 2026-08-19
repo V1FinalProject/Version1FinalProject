@@ -1,0 +1,22 @@
+@if (auth.isAuthenticated()) {
+  <header class="app-header">
+    <div class="app-header__inner">
+      <img class="brand" src="star-award.png" alt="Star Award" />
+
+      <div class="account">
+        <span class="account__avatar" aria-hidden="true">{{ initials() }}</span>
+        <span class="account__details">
+          <span class="account__name">{{ auth.user()?.name }}</span>
+          <span class="account__meta">
+            {{ auth.user()?.practice }} &middot; {{ auth.user()?.location }}
+          </span>
+        </span>
+        <button type="button" class="account__signout" (click)="signOut()">Sign out</button>
+      </div>
+    </div>
+  </header>
+}
+
+<main class="app-main">
+  <router-outlet />
+</main>
