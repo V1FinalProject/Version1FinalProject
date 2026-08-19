@@ -19,16 +19,6 @@ public class WeakJustificationChecker implements NominationFlagChecker {
     private static final int FLAG_SCORE_THRESHOLD = 2;
     private static final Pattern DIGIT_PATTERN = Pattern.compile("\\d");
 
-    private static final List<String> STATED_VALUES = List.of(
-            "customer first",
-            "excellence",
-            "drive",
-            "honesty & integrity",
-            "honesty and integrity",
-            "no ego",
-            "personal commitment",
-            "collaboration");
-
     @Override
     public Optional<FlagResult> check(Nomination target, List<Nomination> allNominations) {
         String text = target.justification();
@@ -47,7 +37,7 @@ public class WeakJustificationChecker implements NominationFlagChecker {
             reasons.add("no quantifiable impact found (no numbers/figures)");
         }
 
-        boolean mentionsStatedValue = STATED_VALUES.stream().anyMatch(lowerText::contains);
+        boolean mentionsStatedValue = CompanyValues.STATED_VALUES.stream().anyMatch(lowerText::contains);
         if (!mentionsStatedValue) {
             score++;
             reasons.add("does not mention a stated company value");
