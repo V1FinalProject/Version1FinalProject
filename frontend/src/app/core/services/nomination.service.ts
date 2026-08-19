@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { NominationReceipt, NominationSubmission } from '../models/nomination.model';
 
+/** Where the `useMockApi` fallback keeps submissions when the API is off. */
 const STORAGE_KEY = 'star-awards.nominations';
 
 @Injectable({ providedIn: 'root' })
@@ -11,10 +12,10 @@ export class NominationService {
   private readonly http = inject(HttpClient);
 
   /**
-   * Submits a nomination.
+   * Submits a nomination to `POST {apiBaseUrl}/nominations`.
    *
-   * Once the Spring Boot endpoint exists, set `useMockApi: false` in the
-   * environment file and this goes over HTTP unchanged.
+   * The backend stores it and asks Claude to review it before responding, so
+   * this can take a couple of seconds — the form shows a spinner meanwhile.
    */
   async submit(submission: NominationSubmission): Promise<NominationReceipt> {
     if (environment.useMockApi) {
@@ -26,8 +27,8 @@ export class NominationService {
     );
   }
 
-  /** Everything submitted so far in this browser — useful while there is no backend. */
-  readAll(): NominationSubmission[] {
+  /** Everything submitted so far in this browser. Only used by the mock path. */
+  private readAll(): NominationSubmission[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       return stored ? (JSON.parse(stored) as NominationSubmission[]) : [];

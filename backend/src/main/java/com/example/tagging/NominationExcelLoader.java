@@ -15,8 +15,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// Reads the mock nominations spreadsheet into memory. There is no database yet,
-// so loadAll() re-reads the file from disk each time it is called.
+// Reads the mock nominations spreadsheet. This is seed data now rather than the
+// live source: NominationStore calls loadAll() once at startup and serves every
+// request from memory after that.
 @Component
 public class NominationExcelLoader {
 
@@ -66,8 +67,8 @@ public class NominationExcelLoader {
         String justification = stringValue(row.getCell(6));
         String category = stringValue(row.getCell(7));
 
-        return new Nomination(id, timestamp, nominatorName, nominatorEmail, nomineeName, nomineeEmail,
-                justification, category);
+        return Nomination.fromJustification(id, timestamp, nominatorName, nominatorEmail, nomineeName,
+                nomineeEmail, justification, category);
     }
 
     private String stringValue(Cell cell) {

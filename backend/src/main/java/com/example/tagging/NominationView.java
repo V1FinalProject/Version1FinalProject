@@ -1,0 +1,32 @@
+package com.example.tagging;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * One row of the reviewer dashboard: the nomination, everything the tagging
+ * checkers found against it, Claude's verdict, and where the reviewer has left
+ * it.
+ *
+ * {@code claudeReview} is null until the nomination has actually been sent to
+ * Claude - form submissions are reviewed on the way in, seed rows only when the
+ * reviewer asks.
+ */
+public record NominationView(
+        int id,
+        LocalDateTime timestamp,
+        String nominatorName,
+        String nominatorEmail,
+        String nomineeName,
+        String nomineeEmail,
+        String category,
+        String what,
+        String how,
+        String justification,
+        String practice,
+        String location,
+        List<FlagResult> flags,
+        ClaudeReviewResult claudeReview,
+        ReviewStatus status,
+        boolean favourite) {
+}
