@@ -48,6 +48,12 @@ public record NominationSubmissionRequest(
         require(nominatorName, "nominatorName");
         require(nominatorEmail, "nominatorEmail");
 
+        // The frontend already blocks this in the form, but the API is the real
+        // boundary - anyone calling it directly should hit the same rule.
+        if (nominatorEmail.trim().equalsIgnoreCase(nomineeEmail.trim())) {
+            throw badRequest("You cannot nominate yourself");
+        }
+
         return NominationCategory.byId(require(categoryId, "categoryId"))
                 .orElseThrow(() -> badRequest("Unknown categoryId \"" + categoryId + "\""));
     }
