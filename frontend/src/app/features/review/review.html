@@ -52,7 +52,7 @@
           class="tab"
           [class.tab--active]="filter() === tab.id"
           [attr.aria-selected]="filter() === tab.id"
-          (click)="filter.set(tab.id)"
+          (click)="setFilter(tab.id)"
         >
           {{ tab.label }}
           <span class="tab__count">{{ counts()[tab.id] }}</span>
@@ -92,6 +92,7 @@
             <th scope="col" class="col-star"><span class="visually-hidden">Shortlist</span></th>
             <th scope="col" class="col-id">#</th>
             <th scope="col">Nominee</th>
+            <th scope="col" class="col-location">Location</th>
             <th scope="col">Nominator</th>
             <th scope="col">Category</th>
             <th scope="col">Flags</th>
@@ -101,7 +102,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of visibleRows(); track row.id) {
+          @for (row of pagedRows(); track row.id) {
             <tr class="row" [class.row--open]="expandedId() === row.id">
               <td class="col-star">
                 <button
@@ -139,6 +140,8 @@
                 </button>
                 <span class="cell-sub">{{ row.nomineeEmail }}</span>
               </td>
+
+              <td>{{ row.nomineeProfile?.location ?? '—' }}</td>
 
               <td>
                 {{ row.nominatorName }}
@@ -198,7 +201,7 @@
                     [disabled]="isBusy(row.id)"
                     (click)="decide(row, 'ACCEPTED')"
                   >
-                    Accept
+                    {{ row.status === 'ACCEPTED' ? 'Move to pending' : 'Accept' }}
                   </button>
                   <button
                     type="button"
@@ -207,7 +210,7 @@
                     [disabled]="isBusy(row.id)"
                     (click)="decide(row, 'REJECTED')"
                   >
-                    Reject
+                    {{ row.status === 'REJECTED' ? 'Move to pending' : 'Reject' }}
                   </button>
                 </div>
               </td>
@@ -215,7 +218,7 @@
 
             @if (expandedId() === row.id) {
               <tr class="detail-row">
-                <td colspan="9">
+                <td colspan="10">
                   <div class="detail">
                     <div class="detail__narrative">
                       <h3 class="detail__heading">What they did</h3>
@@ -246,6 +249,25 @@
                         </ul>
                       }
 
+                      <h3 class="detail__heading">People</h3>
+                      <p class="detail__body detail__body--muted">
+                        <strong>{{ row.nominatorName }}</strong>
+                        @if (row.nominatorProfile; as profile) {
+                          ({{ profile.jobTitle }}, {{ profile.department }}
+                          @if (profile.contractType === 'CONTRACTOR') {
+                            &middot; Contractor
+                          })
+                        }
+                        nominated
+                        <strong>{{ row.nomineeName }}</strong>
+                        @if (row.nomineeProfile; as profile) {
+                          ({{ profile.jobTitle }}, {{ profile.department }}
+                          @if (profile.contractType === 'CONTRACTOR') {
+                            &middot; Contractor
+                          })
+                        }
+                      </p>
+
                       <h3 class="detail__heading">Submitted</h3>
                       <p class="detail__body detail__body--muted">
                         {{ row.timestamp | date: 'd MMM yyyy, HH:mm' }} by
@@ -263,5 +285,27 @@
         </tbody>
       </table>
     </div>
+
+    @if (totalPages() > 1) {
+      <nav class="pager" aria-label="Table pages">
+        <button
+          type="button"
+          class="btn-mini"
+          [disabled]="currentPage() === 1"
+          (click)="goToPage(currentPage() - 1)"
+        >
+          Previous
+        </button>
+        <span class="pager__status">Page {{ currentPage() }} of {{ totalPages() }}</span>
+        <button
+          type="button"
+          class="btn-mini"
+          [disabled]="currentPage() === totalPages()"
+          (click)="goToPage(currentPage() + 1)"
+        >
+          Next
+        </button>
+      </nav>
+    }
   }
 </div>

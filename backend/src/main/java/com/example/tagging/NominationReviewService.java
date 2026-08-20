@@ -28,13 +28,15 @@ public class NominationReviewService {
     private final ReviewStateStore reviewState;
     private final TaggingService taggingService;
     private final ClaudeNominationReviewer claudeReviewer;
+    private final UserAccountRepository users;
 
     public NominationReviewService(NominationStore nominations, ReviewStateStore reviewState,
-            TaggingService taggingService, ClaudeNominationReviewer claudeReviewer) {
+            TaggingService taggingService, ClaudeNominationReviewer claudeReviewer, UserAccountRepository users) {
         this.nominations = nominations;
         this.reviewState = reviewState;
         this.taggingService = taggingService;
         this.claudeReviewer = claudeReviewer;
+        this.users = users;
     }
 
     /** Every nomination, newest first, with its flags and current review state. */
@@ -135,7 +137,13 @@ public class NominationReviewService {
                 taggingService.evaluate(nomination, allNominations),
                 reviewState.claudeReviewOf(nomination.id()).orElse(null),
                 reviewState.statusOf(nomination.id()),
-                reviewState.isFavourite(nomination.id()));
+                reviewState.isFavourite(nomination.id()),
+                profileOf(nomination.nominatorEmail()),
+                profileOf(nomination.nomineeEmail()));
+    }
+
+    private PersonSummary profileOf(String email) {
+        return users.findByEmailIgnoreCase(email).map(PersonSummary::from).orElse(null);
     }
 
     private Nomination require(int id) {

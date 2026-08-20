@@ -490,3 +490,29 @@
     flex: 1 1 100%;
   }
 }
+
+/* Nominee match preview -------------------------------------------------- */
+
+.nominee-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--success);
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  border-radius: var(--radius-sm);
+}
+
+.nominee-preview__check {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  font-size: 0.6875rem;
+  color: #fff;
+  background: var(--success);
+}

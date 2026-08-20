@@ -10,7 +10,18 @@
   </div>
 </header>
 
-@if (receipt(); as confirmation) {
+@if (isContractor()) {
+  <!-- ================= Not eligible ================= -->
+  <div class="page">
+    <section class="confirm" role="status">
+      <h2 class="confirm__title">Star Awards are for permanent colleagues</h2>
+      <p class="confirm__body">
+        Contractor accounts can’t submit or receive Star Award nominations. If this looks wrong,
+        contact your People &amp; Culture partner.
+      </p>
+    </section>
+  </div>
+} @else if (receipt(); as confirmation) {
   <!-- ================= Confirmation ================= -->
   <div class="page">
     <section class="confirm" role="status">
@@ -63,40 +74,10 @@
     }
 
     <form class="card" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <!-- 1. Nominee name -->
-      <div class="field">
-        <label class="field__label" for="nomineeName">
-          1. Enter the full name of the colleague you want to nominate
-          <span class="field__required" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="nomineeName"
-          type="text"
-          class="control"
-          [class.control--invalid]="showError('nomineeName')"
-          formControlName="nomineeName"
-          autocomplete="off"
-          placeholder="e.g. Jordan Whelan"
-          [attr.aria-invalid]="showError('nomineeName')"
-          [attr.aria-describedby]="showError('nomineeName') ? 'nomineeName-error' : null"
-        />
-        @if (showError('nomineeName')) {
-          <p class="field__error" id="nomineeName-error">
-            @if (form.controls.nomineeName.hasError('required')) {
-              Enter your nominee’s full name.
-            } @else if (form.controls.nomineeName.hasError('minlength')) {
-              That name looks too short — please enter their full name.
-            } @else {
-              That name is too long (120 characters maximum).
-            }
-          </p>
-        }
-      </div>
-
-      <!-- 2. Nominee email -->
+      <!-- 1. Nominee email -->
       <div class="field">
         <label class="field__label" for="nomineeEmail">
-          2. Enter the email address of the colleague you want to nominate
+          1. Enter the email address of the colleague you want to nominate
           <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
@@ -106,36 +87,52 @@
           [class.control--invalid]="showError('nomineeEmail')"
           formControlName="nomineeEmail"
           autocomplete="off"
+          list="nominee-suggestions"
           placeholder="firstname.lastname@version1.com"
           [attr.aria-invalid]="showError('nomineeEmail')"
           [attr.aria-describedby]="
             showError('nomineeEmail') ? 'nomineeEmail-error' : 'nomineeEmail-hint'
           "
         />
+        <!-- Native browser suggestions as you type — helpful with a large
+             colleague list without needing a custom autocomplete component. -->
+        <datalist id="nominee-suggestions">
+          @for (colleague of colleagues(); track colleague.email) {
+            <option [value]="colleague.email">{{ colleague.name }}</option>
+          }
+        </datalist>
+
+        @if (matchedNominee(); as person) {
+          <p class="nominee-preview" role="status">
+            <span class="nominee-preview__check" aria-hidden="true">✓</span>
+            <strong>{{ person.name }}</strong> — {{ person.department }}, {{ person.location }}
+          </p>
+        }
+
         @if (showError('nomineeEmail')) {
           <p class="field__error" id="nomineeEmail-error">
-            @if (form.controls.nomineeEmail.hasError('required')) {
-              Enter your nominee’s email address.
-            } @else if (form.controls.nomineeEmail.hasError('selfNomination')) {
+            @if (form.controls.nomineeEmail.hasError('selfNomination')) {
               You can’t nominate yourself — enter a colleague’s email address.
-            } @else if (form.controls.nomineeEmail.hasError('wrongDomain')) {
-              Nominees must be colleagues — use a &#64;{{ emailDomain }} address.
-            } @else {
+            } @else if (form.controls.nomineeEmail.hasError('unknownNominee')) {
+              We don’t recognise that email as an existing, permanent Version 1 account.
+            } @else if (form.controls.nomineeEmail.hasError('email')) {
               Enter a valid email address.
+            } @else {
+              Enter your nominee’s email address.
             }
           </p>
         } @else {
           <p class="field__hint" id="nomineeEmail-hint">
-            Must be a &#64;{{ emailDomain }} address. We’ll use this to notify them if the
-            nomination is approved.
+            Only permanent Version 1 colleagues can be nominated. We’ll use this to notify them if
+            the nomination is approved.
           </p>
         }
       </div>
 
-      <!-- 3. Why — split into WHAT and HOW -->
+      <!-- 2. Why — split into WHAT and HOW -->
       <fieldset class="why">
         <legend class="field__label why__legend">
-          3. Why are you nominating this colleague?
+          2. Why are you nominating this colleague?
           <span class="field__required" aria-hidden="true">*</span>
         </legend>
 
@@ -240,7 +237,7 @@
       <!-- 4. Category -->
       <div class="field">
         <p class="field__label" id="category-label">
-          4. In which category should your nomination be included?
+          3. In which category should your nomination be included?
           <span class="field__required" aria-hidden="true">*</span>
         </p>
 

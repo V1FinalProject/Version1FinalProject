@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DEMO_USERS } from '../../core/models/user.model';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -16,7 +15,6 @@ export class Login {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly demoUsers = DEMO_USERS;
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
 
@@ -29,11 +27,6 @@ export class Login {
   protected showError(controlName: 'email' | 'password'): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.touched || control.dirty);
-  }
-
-  protected useDemoAccount(email: string): void {
-    this.form.patchValue({ email, password: 'demo' });
-    this.errorMessage.set(null);
   }
 
   protected async onSubmit(): Promise<void> {

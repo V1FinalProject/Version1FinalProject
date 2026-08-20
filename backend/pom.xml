@@ -32,6 +32,14 @@
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
 
+        <!-- Password hashing only (BCryptPasswordEncoder) - deliberately not the
+             full spring-boot-starter-security, which would auto-lock every
+             endpoint behind HTTP Basic and require reconfiguring the whole API. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

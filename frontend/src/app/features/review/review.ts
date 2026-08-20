@@ -13,6 +13,9 @@ interface FilterTab {
   readonly label: string;
 }
 
+/** Rows per page of the dashboard table. */
+const PAGE_SIZE = 25;
+
 const FILTER_TABS: readonly FilterTab[] = [
   { id: 'PENDING', label: 'Pending' },
   { id: 'ACCEPTED', label: 'Accepted' },
@@ -65,6 +68,10 @@ export class Review {
   protected readonly loadError = signal<string | null>(null);
   protected readonly filter = signal<ReviewFilter>('PENDING');
 
+  /** 1-based — the table shows PAGE_SIZE rows at a time. */
+  protected readonly page = signal(1);
+  protected readonly pageSize = PAGE_SIZE;
+
   /** The one row whose detail panel is open, if any. */
   protected readonly expandedId = signal<number | null>(null);
 
@@ -99,6 +106,23 @@ export class Review {
     return rows.filter((row) => row.status === filter);
   });
 
+  protected readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.visibleRows().length / this.pageSize)),
+  );
+
+  /**
+   * Clamped to `totalPages` — `page` itself can point past the end after a
+   * write moves rows out of the current filter (e.g. accepting the last
+   * pending row), or after switching to a shorter filter.
+   */
+  protected readonly currentPage = computed(() => Math.min(this.page(), this.totalPages()));
+
+  /** The current page's slice of `visibleRows` — what the table actually renders. */
+  protected readonly pagedRows = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.visibleRows().slice(start, start + this.pageSize);
+  });
+
   /** Nominations Claude hasn't seen yet — what "Review all pending" works through. */
   protected readonly unreviewed = computed(() =>
     this.rows().filter((row) => row.claudeReview === null),
@@ -124,6 +148,16 @@ export class Review {
 
   protected isBusy(id: number): boolean {
     return this.busyIds().has(id);
+  }
+
+  /** Switching filters starts back at page 1 — the old page number rarely makes sense for a new set of rows. */
+  protected setFilter(filter: ReviewFilter): void {
+    this.filter.set(filter);
+    this.page.set(1);
+  }
+
+  protected goToPage(page: number): void {
+    this.page.set(Math.min(Math.max(1, page), this.totalPages()));
   }
 
   /** Colour class for a flag chip, so each flag type reads as its own colour. */
