@@ -21,4 +21,4 @@ jobs:
           app_location: "frontend"
           output_location: "dist/frontend/browser"
         env:
-          NODE_VERSION: '24'
+          NODE_VERSION: '24.15.0'
