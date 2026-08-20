@@ -355,11 +355,39 @@ $dashboard-width: 82rem;
   white-space: nowrap;
 }
 
+/* Neutral default — used as-is for any flag not covered by a colour variant
+   below (e.g. one from a checker added later). */
 .chip--flag {
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  cursor: help;
+}
+
+/* One colour per flag type, so "weak justification" reads as a different kind
+   of concern from "self nomination" at a glance rather than blending together. */
+.chip--flag-weak {
   color: #8a4b00;
   background: #fdf0dd;
-  border: 1px solid #f0d3a5;
-  cursor: help;
+  border-color: #f0d3a5;
+}
+
+.chip--flag-routine {
+  color: #6b3fa0;
+  background: #f3ecfb;
+  border-color: #dcc7f0;
+}
+
+.chip--flag-reciprocal {
+  color: var(--brand-navy-600);
+  background: #e8f2f9;
+  border-color: #bcdcec;
+}
+
+.chip--flag-repeat {
+  color: #a83263;
+  background: #fbeaf1;
+  border-color: #eec3d9;
 }
 
 .flags {

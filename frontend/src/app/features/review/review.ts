@@ -22,6 +22,19 @@ const FILTER_TABS: readonly FilterTab[] = [
 ];
 
 /**
+ * Colour variant per flag, keyed by the backend's tag name (see the
+ * NominationFlagChecker implementations in com.example.tagging). A tag with no
+ * entry here — e.g. one from a checker added later — just gets the neutral
+ * default `.chip--flag` colour rather than breaking.
+ */
+const FLAG_CLASSES: Readonly<Record<string, string>> = {
+  'Weak Justification': 'chip--flag-weak',
+  'Routine Task Language': 'chip--flag-routine',
+  'Reciprocal Nomination': 'chip--flag-reciprocal',
+  'Repeat Nomination': 'chip--flag-repeat',
+};
+
+/**
  * Reviewer dashboard.
  *
  * Shows every nomination in a table with the rule-based flags and Claude's
@@ -111,6 +124,11 @@ export class Review {
 
   protected isBusy(id: number): boolean {
     return this.busyIds().has(id);
+  }
+
+  /** Colour class for a flag chip, so each flag type reads as its own colour. */
+  protected flagClass(tagName: string): string {
+    return FLAG_CLASSES[tagName] ?? '';
   }
 
   protected toggleExpanded(id: number): void {

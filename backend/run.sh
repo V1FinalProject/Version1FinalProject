@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Loads backend/.env (gitignored, holds ANTHROPIC_API_KEY) into the environment,
-# then starts the Spring Boot app.
+# Loads backend/.env (gitignored, holds ANTHROPIC_API_KEY and MONGODB_URI)
+# into the environment, then starts the Spring Boot app.
 set -a
 source "$(dirname "$0")/.env"
 set +a
