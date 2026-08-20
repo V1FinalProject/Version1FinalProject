@@ -12,11 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
       - name: Build and Deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -25,3 +20,5 @@ jobs:
           action: "upload"
           app_location: "frontend"
           output_location: "dist/frontend/browser"
+        env:
+          NODE_VERSION: '24'
