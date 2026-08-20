@@ -12,7 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build and Deploy
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+
+      - name: Install and Build Angular
+        working-directory: frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
@@ -20,5 +31,4 @@ jobs:
           action: "upload"
           app_location: "frontend"
           output_location: "dist/frontend/browser"
-        env:
-          NODE_VERSION: '24.15.0'
+          skip_app_build: true
