@@ -32,3 +32,4 @@ jobs:
           app_location: "frontend"
           output_location: "dist/frontend/browser"
           skip_app_build: true
+          app_artifact_location: "frontend/dist/frontend/browser"
