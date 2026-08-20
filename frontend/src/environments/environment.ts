@@ -2,8 +2,8 @@
  * Runtime configuration.
  *
  * Deployment target is Azure: the Angular build is served as a static site and
- * the Spring Boot API lives behind `apiBaseUrl`, with MySQL (Azure Database for
- * MySQL) behind that. For production, point `apiBaseUrl` at the deployed API.
+ * the Spring Boot API lives behind `apiBaseUrl`, with MongoDB Atlas behind
+ * that. For production, point `apiBaseUrl` at the deployed API.
  *
  * In development `/api` is proxied to the Spring Boot app on :8080 by
  * `proxy.conf.json`, so the dev server is same-origin with the API and neither

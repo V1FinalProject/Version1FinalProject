@@ -1,5 +1,8 @@
 package com.example.tagging;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 
 /**
@@ -14,9 +17,14 @@ import java.time.LocalDateTime;
  *
  * {@code practice} and {@code location} come from the signed-in nominator and
  * are null on the spreadsheet seed rows, which predate those fields.
+ *
+ * Persisted directly as a Mongo document - {@code id} doubles as the
+ * nominator's reference number, so it stays a plain incrementing {@code int}
+ * (assigned by {@link NominationStore}) rather than an ObjectId.
  */
+@Document(collection = "nominations")
 public record Nomination(
-        int id,
+        @Id int id,
         LocalDateTime timestamp,
         String nominatorName,
         String nominatorEmail,
