@@ -8,7 +8,6 @@ import {
   Validators,
 } from '@angular/forms';
 import {
-  ALLOWED_EMAIL_DOMAIN,
   CORE_VALUES,
   CURRENT_QUARTER,
   NARRATIVE_MAX_LENGTH,
@@ -20,6 +19,7 @@ import {
 } from '../../core/models/nomination.model';
 import { AuthService } from '../../core/services/auth.service';
 import { NominationService } from '../../core/services/nomination.service';
+import { NominatableColleague, UserDirectoryService } from '../../core/services/user-directory.service';
 
 /** Control names in display order — used to focus the first error on submit. */
 const FIELD_ORDER = ['nomineeName', 'nomineeEmail', 'what', 'how', 'categoryId'] as const;
@@ -36,6 +36,7 @@ export class Nominate {
   private readonly formBuilder = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly nominations = inject(NominationService);
+  private readonly userDirectory = inject(UserDirectoryService);
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
 
   protected readonly categories = NOMINATION_CATEGORIES;
@@ -44,13 +45,16 @@ export class Nominate {
   protected readonly programmeUrl = PROGRAMME_URL;
   protected readonly maxLength = NARRATIVE_MAX_LENGTH;
   protected readonly minLength = NARRATIVE_MIN_LENGTH;
-  protected readonly emailDomain = ALLOWED_EMAIL_DOMAIN;
 
   /** The signed-in nominator — stamped onto the submission automatically. */
   protected readonly nominator = this.auth.user;
   protected readonly firstName = computed(
     () => this.nominator()?.name.split(' ')[0] ?? 'there',
   );
+
+  /** Who can be nominated, minus the signed-in nominator themselves. */
+  protected readonly colleagues = signal<NominatableColleague[]>([]);
+  protected readonly colleaguesLoading = signal(true);
 
   protected readonly submitting = signal(false);
   protected readonly submitError = signal<string | null>(null);
@@ -73,15 +77,21 @@ export class Nominate {
     return entered && mine && entered === mine ? { selfNomination: true } : null;
   };
 
-  /** Nominees must be colleagues — reject anything outside the Version 1 domain. */
-  private readonly companyEmail = (control: AbstractControl): ValidationErrors | null => {
+  /**
+   * Only real, nominatable accounts can be nominated — checked against the
+   * already-fetched colleague list rather than a request per keystroke.
+   * Skipped while that list is still loading, so the field doesn't flash
+   * "unknown" before it's had a chance to arrive.
+   */
+  private readonly matchesColleague = (control: AbstractControl): ValidationErrors | null => {
     const entered = String(control.value ?? '')
       .trim()
       .toLowerCase();
-    if (!entered || !entered.includes('@')) {
-      return null; // Validators.email already reports this.
+    if (!entered || this.colleaguesLoading()) {
+      return null;
     }
-    return entered.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`) ? null : { wrongDomain: true };
+    const known = this.colleagues().some((colleague) => colleague.email.toLowerCase() === entered);
+    return known ? null : { unknownNominee: true };
   };
 
   private readonly narrativeValidators = [
@@ -94,12 +104,25 @@ export class Nominate {
     nomineeName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
     nomineeEmail: [
       '',
-      [Validators.required, Validators.email, this.companyEmail, this.notSelf],
+      [Validators.required, Validators.email, this.notSelf, this.matchesColleague],
     ],
     what: ['', this.narrativeValidators],
     how: ['', this.narrativeValidators],
     categoryId: ['', [Validators.required]],
     emailReceipt: [false],
+  });
+
+  private readonly nomineeEmailValue = toSignal(this.form.controls.nomineeEmail.valueChanges, {
+    initialValue: '',
+  });
+
+  /** The colleague the typed email currently matches, for the preview beneath the field. */
+  protected readonly matchedNominee = computed(() => {
+    const entered = this.nomineeEmailValue().trim().toLowerCase();
+    if (!entered) {
+      return null;
+    }
+    return this.colleagues().find((colleague) => colleague.email.toLowerCase() === entered) ?? null;
   });
 
   private readonly whatValue = toSignal(this.form.controls.what.valueChanges, {
@@ -117,6 +140,25 @@ export class Nominate {
   protected readonly selectedCategory = computed(
     () => this.categories.find((category) => category.id === this.categoryValue()) ?? null,
   );
+
+  constructor() {
+    void this.loadColleagues();
+  }
+
+  private async loadColleagues(): Promise<void> {
+    this.colleaguesLoading.set(true);
+    try {
+      const all = await this.userDirectory.listNominatable();
+      const mine = this.nominator()?.email.toLowerCase();
+      this.colleagues.set(all.filter((colleague) => colleague.email.toLowerCase() !== mine));
+    } catch {
+      this.submitError.set(
+        'Couldn’t load the list of colleagues to nominate. Please refresh and try again.',
+      );
+    } finally {
+      this.colleaguesLoading.set(false);
+    }
+  }
 
   /** '', 'near' or 'over' — drives the colour of the character counter. */
   protected counterState(length: number): '' | 'near' | 'over' {
@@ -147,6 +189,11 @@ export class Nominate {
     }
 
     const value = this.form.getRawValue();
+    if (!this.matchedNominee()) {
+      this.submitError.set('Enter the work email of an existing Version 1 colleague to nominate.');
+      return;
+    }
+
     const submission: NominationSubmission = {
       nomineeName: value.nomineeName.trim(),
       nomineeEmail: value.nomineeEmail.trim().toLowerCase(),

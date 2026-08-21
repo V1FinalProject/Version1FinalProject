@@ -106,28 +106,44 @@
           [class.control--invalid]="showError('nomineeEmail')"
           formControlName="nomineeEmail"
           autocomplete="off"
+          list="nominee-suggestions"
           placeholder="firstname.lastname@version1.com"
           [attr.aria-invalid]="showError('nomineeEmail')"
           [attr.aria-describedby]="
             showError('nomineeEmail') ? 'nomineeEmail-error' : 'nomineeEmail-hint'
           "
         />
+        <!-- Native browser suggestions as you type — helpful with a large
+             colleague list without needing a custom autocomplete component. -->
+        <datalist id="nominee-suggestions">
+          @for (colleague of colleagues(); track colleague.email) {
+            <option [value]="colleague.email">{{ colleague.name }}</option>
+          }
+        </datalist>
+
+        @if (matchedNominee(); as person) {
+          <p class="nominee-preview" role="status">
+            <span class="nominee-preview__check" aria-hidden="true">✓</span>
+            <strong>{{ person.name }}</strong> — {{ person.department }}, {{ person.workLocation }}
+          </p>
+        }
+
         @if (showError('nomineeEmail')) {
           <p class="field__error" id="nomineeEmail-error">
             @if (form.controls.nomineeEmail.hasError('required')) {
               Enter your nominee’s email address.
             } @else if (form.controls.nomineeEmail.hasError('selfNomination')) {
               You can’t nominate yourself — enter a colleague’s email address.
-            } @else if (form.controls.nomineeEmail.hasError('wrongDomain')) {
-              Nominees must be colleagues — use a &#64;{{ emailDomain }} address.
+            } @else if (form.controls.nomineeEmail.hasError('unknownNominee')) {
+              We don’t recognise that email as an existing Version 1 account.
             } @else {
               Enter a valid email address.
             }
           </p>
         } @else {
           <p class="field__hint" id="nomineeEmail-hint">
-            Must be a &#64;{{ emailDomain }} address. We’ll use this to notify them if the
-            nomination is approved.
+            Only existing Version 1 colleagues can be nominated. We’ll use this to notify them if
+            the nomination is approved.
           </p>
         }
       </div>

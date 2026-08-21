@@ -64,25 +64,29 @@ public class NominationStore {
     /** Adds a nomination, assigning it the next free id. */
     public Nomination add(NominationSubmissionRequest request) {
         request.validate();
-        requireNotCoordinator(request.nomineeEmail());
+        requireNominatableAccount(request.nominatorEmail(), "Nominator");
+        requireNominatableAccount(request.nomineeEmail(), "Nominee");
         Nomination nomination = request.toNomination(nextId.getAndIncrement());
         return repository.insert(nomination);
     }
 
     /**
-     * The reviewer/coordinator account is a shared role account, not a person -
-     * it has no nominee of its own. Only blocks a match against a real account;
-     * an unrecognised nominee email is allowed through unchanged; nomination
-     * submission doesn't require an existing account otherwise.
+     * Both people in a nomination must be real Version 1 accounts - the
+     * frontend already keeps the nominee picker to real, matched colleagues,
+     * so this is the real enforcement behind that, not the primary guard. The
+     * nominee additionally can't be the coordinator account - it's a shared
+     * role account, not a person, so it has no nominee of its own.
      */
-    private void requireNotCoordinator(String nomineeEmail) {
-        boolean isCoordinator = users.findByEmailAddressIgnoreCase(nomineeEmail)
-                .map(account -> account.getRole() == AccountRole.COORDINATOR)
-                .orElse(false);
+    private void requireNominatableAccount(String email, String role) {
+        UserAccount account = users.findByEmailAddressIgnoreCase(email)
+                .orElseThrow(() -> badRequest(role + " must be an existing Version 1 account"));
 
-        if (isCoordinator) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "The review coordinator can't be nominated");
+        if (role.equals("Nominee") && account.getRole() == AccountRole.COORDINATOR) {
+            throw badRequest("The review coordinator can't be nominated");
         }
+    }
+
+    private static ResponseStatusException badRequest(String message) {
+        return new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
     }
 }
