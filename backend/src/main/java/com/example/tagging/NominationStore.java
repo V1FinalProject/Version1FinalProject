@@ -3,7 +3,9 @@ package com.example.tagging;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,11 +27,14 @@ public class NominationStore {
 
     private final NominationExcelLoader seedLoader;
     private final NominationMongoRepository repository;
+    private final UserAccountRepository users;
     private final AtomicInteger nextId = new AtomicInteger(1);
 
-    public NominationStore(NominationExcelLoader seedLoader, NominationMongoRepository repository) {
+    public NominationStore(NominationExcelLoader seedLoader, NominationMongoRepository repository,
+            UserAccountRepository users) {
         this.seedLoader = seedLoader;
         this.repository = repository;
+        this.users = users;
     }
 
     @PostConstruct
@@ -59,7 +64,25 @@ public class NominationStore {
     /** Adds a nomination, assigning it the next free id. */
     public Nomination add(NominationSubmissionRequest request) {
         request.validate();
+        requireNotCoordinator(request.nomineeEmail());
         Nomination nomination = request.toNomination(nextId.getAndIncrement());
         return repository.insert(nomination);
+    }
+
+    /**
+     * The reviewer/coordinator account is a shared role account, not a person -
+     * it has no nominee of its own. Only blocks a match against a real account;
+     * an unrecognised nominee email is allowed through unchanged; nomination
+     * submission doesn't require an existing account otherwise.
+     */
+    private void requireNotCoordinator(String nomineeEmail) {
+        boolean isCoordinator = users.findByEmailAddressIgnoreCase(nomineeEmail)
+                .map(account -> account.getRole() == AccountRole.COORDINATOR)
+                .orElse(false);
+
+        if (isCoordinator) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "The review coordinator can't be nominated");
+        }
     }
 }

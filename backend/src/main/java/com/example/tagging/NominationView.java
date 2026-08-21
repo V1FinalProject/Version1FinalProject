@@ -28,5 +28,9 @@ public record NominationView(
         List<FlagResult> flags,
         ClaudeReviewResult claudeReview,
         ReviewStatus status,
-        boolean favourite) {
+        boolean favourite,
+        /** Null if the nominator's account can't be found (nominations don't require one to exist). */
+        PersonSummary nominatorProfile,
+        /** Null if the nominee's account can't be found (nominations don't require one to exist). */
+        PersonSummary nomineeProfile) {
 }

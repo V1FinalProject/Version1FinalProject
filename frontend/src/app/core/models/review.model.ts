@@ -23,6 +23,19 @@ export interface ClaudeReviewResult {
   isVersion1Values: boolean;
 }
 
+/**
+ * Account context for one side of a nomination — enough for the reviewer to
+ * understand who the person actually is beyond just their name. Sourced from
+ * the `users` collection, joined in by the backend at read time.
+ */
+export interface PersonSummary {
+  jobTitle: string;
+  department: string;
+  company: string;
+  workLocation: string;
+  contractType: string;
+}
+
 /** One row of the dashboard. */
 export interface NominationView {
   id: number;
@@ -50,4 +63,8 @@ export interface NominationView {
   claudeReview: ClaudeReviewResult | null;
   status: ReviewStatus;
   favourite: boolean;
+
+  /** Null if the account can't be found (nominations don't require one to exist). */
+  nominatorProfile: PersonSummary | null;
+  nomineeProfile: PersonSummary | null;
 }

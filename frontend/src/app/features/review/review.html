@@ -2,8 +2,8 @@
   <div class="banner__inner">
     <h1 class="banner__title">Star Award Reviews &ndash; {{ quarter }}</h1>
     <p class="banner__tagline">
-      Hi, {{ firstName() }}. The flags and Claude&rsquo;s verdict are advisory &mdash; accepting
-      and rejecting is your call, and you can take a decision back.
+      The flags and Claude&rsquo;s verdict are advisory &mdash; accepting and rejecting is your
+      call, and you can take a decision back.
     </p>
   </div>
 </header>
@@ -172,7 +172,7 @@
                     [disabled]="isBusy(row.id)"
                     (click)="decide(row, 'ACCEPTED')"
                   >
-                    Accept
+                    {{ row.status === 'ACCEPTED' ? 'Pending' : 'Accept' }}
                   </button>
                   <button
                     type="button"
@@ -181,7 +181,7 @@
                     [disabled]="isBusy(row.id)"
                     (click)="decide(row, 'REJECTED')"
                   >
-                    Reject
+                    {{ row.status === 'REJECTED' ? 'Pending' : 'Reject' }}
                   </button>
                   <button
                     type="button"
@@ -241,6 +241,19 @@
                           }
                         </ul>
                       }
+
+                      <h3 class="detail__heading">People</h3>
+                      <p class="detail__body detail__body--muted">
+                        <strong>{{ row.nominatorName }}</strong>
+                        @if (row.nominatorProfile; as profile) {
+                          ({{ profile.jobTitle }}, {{ profile.department }})
+                        }
+                        nominated
+                        <strong>{{ row.nomineeName }}</strong>
+                        @if (row.nomineeProfile; as profile) {
+                          ({{ profile.jobTitle }}, {{ profile.department }})
+                        }
+                      </p>
 
                       <h3 class="detail__heading">Submitted</h3>
                       <p class="detail__body detail__body--muted">

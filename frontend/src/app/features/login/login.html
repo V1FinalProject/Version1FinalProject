@@ -73,30 +73,6 @@
           }
         </button>
       </form>
-
-      <div class="demo">
-        <p class="demo__title">Demo accounts</p>
-        <ul class="demo__list">
-          @for (user of demoUsers; track user.id) {
-            <li>
-              <button
-                type="button"
-                class="demo__item"
-                [class.demo__item--reviewer]="user.role === 'coordinator'"
-                (click)="useDemoAccount(user.email)"
-              >
-                <span class="demo__name">
-                  {{ user.name }}
-                  @if (user.role === 'coordinator') {
-                    <span class="demo__badge">Reviewer</span>
-                  }
-                </span>
-                <span class="demo__email">{{ user.email }}</span>
-              </button>
-            </li>
-          }
-        </ul>
-      </div>
     </div>
   </section>
 </div>

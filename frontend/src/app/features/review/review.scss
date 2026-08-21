@@ -480,27 +480,47 @@ $dashboard-width: 82rem;
   opacity: 0.5;
 }
 
-.btn-mini--accept:hover:not(:disabled) {
+.btn-mini--accept {
   color: var(--success);
-  border-color: var(--success);
+  background: var(--success-bg);
+  border-color: var(--success-border);
 }
 
-.btn-mini--reject:hover:not(:disabled) {
-  color: var(--danger);
-  border-color: var(--danger);
-}
-
-/* The reviewer's current decision — click again to take it back. */
-.btn-mini--accept.btn-mini--on {
+.btn-mini--accept:hover:not(:disabled) {
   color: #fff;
   background: var(--success);
   border-color: var(--success);
 }
 
-.btn-mini--reject.btn-mini--on {
+.btn-mini--reject {
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+}
+
+.btn-mini--reject:hover:not(:disabled) {
   color: #fff;
   background: var(--danger);
   border-color: var(--danger);
+}
+
+/* The reviewer's current decision — click again to take it back. Both
+   variants share the same amber "this will change" colour rather than
+   green/red, since in the "on" state the button no longer means accept/reject
+   — it means move back to pending, and you can't "double accept" something
+   that's already accepted. */
+.btn-mini--accept.btn-mini--on,
+.btn-mini--reject.btn-mini--on {
+  color: #fff;
+  background: #b8860b;
+  border-color: #b8860b;
+}
+
+.btn-mini--accept.btn-mini--on:hover:not(:disabled),
+.btn-mini--reject.btn-mini--on:hover:not(:disabled) {
+  color: #fff;
+  background: #96700a;
+  border-color: #96700a;
 }
 
 /* Expanded detail --------------------------------------------------------- */

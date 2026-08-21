@@ -2,7 +2,6 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { CURRENT_QUARTER } from '../../core/models/nomination.model';
 import { NominationView, ReviewStatus } from '../../core/models/review.model';
-import { AuthService } from '../../core/services/auth.service';
 import { ReviewService } from '../../core/services/review.service';
 
 /** Which rows the table is showing. */
@@ -53,12 +52,10 @@ const FLAG_CLASSES: Readonly<Record<string, string>> = {
   styleUrl: './review.scss',
 })
 export class Review {
-  private readonly auth = inject(AuthService);
   private readonly reviews = inject(ReviewService);
 
   protected readonly quarter = CURRENT_QUARTER;
   protected readonly tabs = FILTER_TABS;
-  protected readonly firstName = computed(() => this.auth.user()?.name.split(' ')[0] ?? 'there');
 
   protected readonly rows = signal<NominationView[]>([]);
   protected readonly loading = signal(true);

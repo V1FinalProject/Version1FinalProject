@@ -1,48 +1,47 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { AppUser, DEMO_USERS } from '../models/user.model';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AppUser } from '../models/user.model';
 
 const SESSION_KEY = 'star-awards.session';
 
 /**
- * Stand-in authentication.
+ * Authentication against the real `users` collection via
+ * `POST /api/auth/login`.
  *
- * There is no real identity provider yet, so this matches an email against
- * `DEMO_USERS`, accepts any non-empty password, and keeps the session in
- * localStorage so a refresh doesn't sign you out.
- *
- * When real auth arrives, only `signIn` and `restore` need replacing — the rest
- * of the app just reads `user()` and `isAuthenticated()`.
+ * No session/token beyond that: a successful login's response is kept in a
+ * signal and mirrored to localStorage so a refresh doesn't sign you out. Real
+ * identity (Microsoft SSO) would change `signIn`/`restore`; nothing else in
+ * the app would need to change, since the rest just reads
+ * `user()`/`isAuthenticated()`.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly http = inject(HttpClient);
   private readonly _user = signal<AppUser | null>(restoreSession());
 
   readonly user = this._user.asReadonly();
   readonly isAuthenticated = computed(() => this._user() !== null);
 
-  /**
-   * Resolves to an error message on failure, or null on success.
-   * Async because the real endpoint will be.
-   */
+  /** Resolves to an error message on failure, or null on success. */
   async signIn(email: string, password: string): Promise<string | null> {
-    // Simulate network latency so the loading state is visible.
-    await new Promise((resolve) => setTimeout(resolve, 400));
-
-    if (!password.trim()) {
-      return 'Please enter your password.';
+    try {
+      const user = await firstValueFrom(
+        this.http.post<AppUser>(`${environment.apiBaseUrl}/auth/login`, {
+          email: email.trim(),
+          password,
+        }),
+      );
+      this._user.set(user);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      return null;
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 401) {
+        return 'Incorrect email or password.';
+      }
+      return 'Couldn’t reach the sign-in service. Please check your connection and try again.';
     }
-
-    const match = DEMO_USERS.find(
-      (candidate) => candidate.email.toLowerCase() === email.trim().toLowerCase(),
-    );
-
-    if (!match) {
-      return 'We don’t recognise that email address. Try one of the demo accounts below.';
-    }
-
-    this._user.set(match);
-    localStorage.setItem(SESSION_KEY, JSON.stringify(match));
-    return null;
   }
 
   signOut(): void {
