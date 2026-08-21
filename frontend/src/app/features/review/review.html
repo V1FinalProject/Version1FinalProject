@@ -89,7 +89,6 @@
         </caption>
         <thead>
           <tr>
-            <th scope="col" class="col-star"><span class="visually-hidden">Shortlist</span></th>
             <th scope="col" class="col-id">#</th>
             <th scope="col">Nominee</th>
             <th scope="col">Nominator</th>
@@ -103,31 +102,6 @@
         <tbody>
           @for (row of visibleRows(); track row.id) {
             <tr class="row" [class.row--open]="expandedId() === row.id">
-              <td class="col-star">
-                <button
-                  type="button"
-                  class="star"
-                  [class.star--on]="row.favourite"
-                  [disabled]="isBusy(row.id)"
-                  [attr.aria-pressed]="row.favourite"
-                  [attr.aria-label]="
-                    (row.favourite ? 'Remove ' : 'Add ') +
-                    row.nomineeName +
-                    ' to your shortlist'
-                  "
-                  (click)="toggleFavourite(row)"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M12 3.5l2.6 5.55 5.9.83-4.28 4.3 1.02 6.07L12 17.4l-5.24 2.85 1.02-6.07L3.5 9.88l5.9-.83z"
-                      stroke="currentColor"
-                      stroke-width="1.6"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-              </td>
-
               <td class="col-id">{{ row.id }}</td>
 
               <td>
@@ -209,13 +183,35 @@
                   >
                     Reject
                   </button>
+                  <button
+                    type="button"
+                    class="heart"
+                    [class.heart--on]="row.favourite"
+                    [disabled]="isBusy(row.id)"
+                    [attr.aria-pressed]="row.favourite"
+                    [attr.aria-label]="
+                      (row.favourite ? 'Remove ' : 'Add ') +
+                      row.nomineeName +
+                      ' to your shortlist'
+                    "
+                    (click)="toggleFavourite(row)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M12 20.3l-1.32-1.19C5.9 14.9 2.5 11.83 2.5 8.05 2.5 5.13 4.79 3 7.65 3c1.61 0 3.16.76 4.35 2.05C13.19 3.76 14.74 3 16.35 3 19.21 3 21.5 5.13 21.5 8.05c0 3.78-3.4 6.85-8.18 11.06z"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </td>
             </tr>
 
             @if (expandedId() === row.id) {
               <tr class="detail-row">
-                <td colspan="9">
+                <td colspan="8">
                   <div class="detail">
                     <div class="detail__narrative">
                       <h3 class="detail__heading">What they did</h3>

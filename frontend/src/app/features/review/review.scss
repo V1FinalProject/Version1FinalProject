@@ -113,7 +113,7 @@ $dashboard-width: 82rem;
 }
 
 .stat--shortlist {
-  border-left-color: #b8860b;
+  border-left-color: #c0265e;
 }
 
 .stat--flagged {
@@ -248,11 +248,6 @@ $dashboard-width: 82rem;
   border-bottom-color: transparent;
 }
 
-.col-star {
-  width: 2.75rem;
-  padding-right: 0 !important;
-}
-
 .col-id {
   width: 3rem;
   font-variant-numeric: tabular-nums;
@@ -260,7 +255,7 @@ $dashboard-width: 82rem;
 }
 
 .col-actions {
-  width: 11rem;
+  width: 13.5rem;
 }
 
 .cell-sub {
@@ -278,9 +273,9 @@ $dashboard-width: 82rem;
   color: var(--text-subtle);
 }
 
-/* Shortlist star ---------------------------------------------------------- */
+/* Shortlist heart ---------------------------------------------------------- */
 
-.star {
+.heart {
   display: grid;
   place-items: center;
   width: 2rem;
@@ -294,25 +289,25 @@ $dashboard-width: 82rem;
   transition: color 0.15s ease;
 }
 
-.star svg {
+.heart svg {
   width: 1.25rem;
   height: 1.25rem;
   fill: none;
 }
 
-.star:hover:not(:disabled) {
-  color: #b8860b;
+.heart:hover:not(:disabled) {
+  color: #c0265e;
 }
 
-.star--on {
-  color: #b8860b;
+.heart--on {
+  color: #c0265e;
 }
 
-.star--on svg {
-  fill: #f5c542;
+.heart--on svg {
+  fill: #e8447f;
 }
 
-.star:disabled {
+.heart:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
