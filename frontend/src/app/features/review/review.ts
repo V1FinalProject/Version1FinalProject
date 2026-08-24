@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
-import { CURRENT_QUARTER } from '../../core/models/nomination.model';
+import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { CURRENT_QUARTER, NOMINATION_CATEGORIES } from '../../core/models/nomination.model';
 import { NominationView, ReviewStatus } from '../../core/models/review.model';
 import { ReviewService } from '../../core/services/review.service';
 
@@ -56,11 +56,20 @@ export class Review {
 
   protected readonly quarter = CURRENT_QUARTER;
   protected readonly tabs = FILTER_TABS;
+  /** The five fixed nomination categories, for the filter dropdown. */
+  protected readonly categoryOptions = NOMINATION_CATEGORIES;
 
   protected readonly rows = signal<NominationView[]>([]);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly filter = signal<ReviewFilter>('PENDING');
+
+  /** Free-text search, matched against nominee and nominator name. */
+  protected readonly searchQuery = signal('');
+
+  /** Categories currently checked in the dropdown. Empty set = no category filter. */
+  protected readonly selectedCategories = signal<ReadonlySet<string>>(new Set());
+  protected readonly categoryMenuOpen = signal(false);
 
   /** The one row whose detail panel is open, if any. */
   protected readonly expandedId = signal<number | null>(null);
@@ -98,17 +107,36 @@ export class Review {
     };
   });
 
+  /**
+   * The status tab, category checkboxes and name search all narrow the same
+   * list together (AND, not OR) — e.g. the "Pending" tab plus a category pick
+   * shows only pending nominations in that category.
+   */
   protected readonly visibleRows = computed(() => {
     const filter = this.filter();
-    const rows = this.rows();
+    const categories = this.selectedCategories();
+    const query = this.searchQuery().trim().toLowerCase();
+    let rows = this.rows();
 
-    if (filter === 'ALL') {
-      return rows;
-    }
     if (filter === 'SHORTLIST') {
-      return rows.filter((row) => row.favourite);
+      rows = rows.filter((row) => row.favourite);
+    } else if (filter !== 'ALL') {
+      rows = rows.filter((row) => row.status === filter);
     }
-    return rows.filter((row) => row.status === filter);
+
+    if (categories.size > 0) {
+      rows = rows.filter((row) => categories.has(row.category));
+    }
+
+    if (query) {
+      rows = rows.filter(
+        (row) =>
+          row.nomineeName.toLowerCase().includes(query) ||
+          row.nominatorName.toLowerCase().includes(query),
+      );
+    }
+
+    return rows;
   });
 
   /** Nominations Claude hasn't seen yet — what "Review all pending" works through. */
@@ -136,6 +164,41 @@ export class Review {
 
   protected isBusy(id: number): boolean {
     return this.busyIds().has(id);
+  }
+
+  protected isCategorySelected(label: string): boolean {
+    return this.selectedCategories().has(label);
+  }
+
+  protected toggleCategory(label: string): void {
+    this.selectedCategories.update((current) => {
+      const next = new Set(current);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  }
+
+  protected clearCategories(): void {
+    this.selectedCategories.set(new Set());
+  }
+
+  protected toggleCategoryMenu(): void {
+    this.categoryMenuOpen.update((open) => !open);
+  }
+
+  /** Closes the category dropdown when clicking anywhere outside it. */
+  @HostListener('document:click', ['$event'])
+  protected onDocumentClick(event: MouseEvent): void {
+    if (!this.categoryMenuOpen()) {
+      return;
+    }
+    if (!(event.target as HTMLElement).closest('.category-filter')) {
+      this.categoryMenuOpen.set(false);
+    }
   }
 
   /** Colour class for a flag chip, so each flag type reads as its own colour. */
