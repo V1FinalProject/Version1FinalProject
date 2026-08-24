@@ -18,6 +18,7 @@ Built as the final project for the Version 1 Early Careers Academy.
 | `backend/` | The Spring Boot API |
 | `data/` | The mock nomination spreadsheet used to seed a fresh database |
 | `docs/` | Requirements, stakeholder notes, user stories, PESTLE/VMOST |
+| [`docs/diagrams/`](docs/diagrams/README.md) | UML class diagrams for the backend and frontend |
 
 ## Running it locally
 
@@ -37,3 +38,5 @@ The dev server proxies `/api` to the backend, so run both together.
 ## Docs
 
 Requirements, stakeholder specs, and planning docs live in [`docs/`](docs/).
+Class diagrams for the domain model, API layer, service architecture, and
+frontend are in [`docs/diagrams/`](docs/diagrams/README.md).
