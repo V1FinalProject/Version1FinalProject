@@ -1,0 +1,46 @@
+# Context: Project Management Deliverables (WBS / Gantt / Burndown)
+
+## Project setup
+- Student team project: an app built over 3 weeks. Currently in the final week; roughly 50% of issues closed, the rest labelled and in progress or in backlog.
+- Managed in GitHub Projects (Projects v2) with Issues and a Kanban board.
+- Free GitHub plan. The Insights tab **does** show time on the X-axis, so the built-in historical burn-up chart is available (contrary to docs suggesting Team/Enterprise only).
+- I am a collaborator, not the repo owner/admin.
+
+## Current issue structure
+- **Labels:** 6 SDLC phases (planning, analysis, design, implementation, testing, deployment) applied to all tasks. Work was *not* done in strict phase order — e.g. testing/deployment work began before earlier phases finished.
+- **Milestones** (added retroactively, all issues binned; approximate rather than exact):
+  - Week 1 — planning + bootstrap
+  - Week 2 — analysis, design, implementation
+  - Week 3 — testing, deployment, presentation
+- **16 deliverables** exist as issues with numbered codes in the title, e.g. `DEV11 - Data Dictionary`. Examples: Kanban board, DB schema, VMOST.
+- **Two stub root issues added:** `DEV17 - Live App` and `DEV18 - Final Presentation` — the overall project goals.
+- **Sub-issues:** parenting is in progress. Goal is that every issue rolls up to a root.
+- Milestones, sub-issues and issue hierarchy were not used until now; everything is being retrofitted this week.
+
+## Required graded artifacts
+1. Work Breakdown Structure
+2. Gantt Chart
+3. Burndown Chart
+
+# Potential chart generation methods
+
+We can deviate from these as there may be better ways to generate necessary charts - they are just an example.
+
+## WBS
+Generate from the sub-issue tree. Render as a Mermaid `flowchart` or `mindmap` in a markdown file in the repo (Mermaid renders natively on GitHub, screenshots cleanly). The numbered DEV codes double as WBS codes.
+
+### Gantt
+- Mermaid `gantt` syntax in repo markdown.
+- **Planned vs actual:** treat the Week 1/2/3 milestones as the *planned baseline*; derive *actual* bars from `createdAt` / `closedAt`. Planned-vs-actual is a stronger deliverable than planned-only and costs nothing since the data exists.
+- Produce a second view grouping rows by SDLC phase label.
+- Screenshot the Projects **Roadmap** view as supporting evidence that the board was used for planning, not reconstructed afterwards.
+
+### Burndown
+- Reconstruct retroactively from timestamps: for each day, `remaining = scope_that_day − cumulative_closed_by_that_day`, using `closedAt`. Plot against an ideal straight line from day 1 to deadline.
+- Include `createdAt` so scope added mid-project is visible — showing scope creep honestly is a plus.
+- **Count leaf issues only.** Exclude DEV17/18/19 and the 16 deliverable parents, or scope is double-counted and the line never reaches zero (parents stay open to the end, producing a flat tail that reads as a missed deadline). State the exclusion on the chart.
+- **State the unit on the axis** (issue count vs story points). Counts are fine; just label them.
+- Optionally include the GitHub Insights chart as a supporting exhibit, noting it is a burn-*up*, not a burn-*down*.
+
+### Report note
+Add one line explaining that SDLC phases overlap rather than running sequentially — this is iterative/agile working, and stating it deliberately stops a marker reading it as a planning defect.
