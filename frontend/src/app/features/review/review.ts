@@ -65,6 +65,21 @@ export class Review {
   /** The one row whose detail panel is open, if any. */
   protected readonly expandedId = signal<number | null>(null);
 
+  /**
+   * Nested sub-dropdowns inside the open detail panel (org chart, nomination
+   * history). Only one row is ever expanded at a time, so these don't need to
+   * be keyed by row id — they're reset whenever the open row changes.
+   */
+  protected readonly orgChartOpen = signal(false);
+  protected readonly historyOpen = signal(false);
+
+  /**
+   * Nominations marked "voucher sent" in this session. There's no backend
+   * field for this yet, so it's UI-only bookkeeping — it resets on reload
+   * and isn't shared between reviewers.
+   */
+  protected readonly voucherSentIds = signal<ReadonlySet<number>>(new Set());
+
   /** Rows with a write in flight — their buttons are disabled while it lands. */
   protected readonly busyIds = signal<ReadonlySet<number>>(new Set());
 
@@ -130,6 +145,34 @@ export class Review {
 
   protected toggleExpanded(id: number): void {
     this.expandedId.update((current) => (current === id ? null : id));
+    // Sub-dropdowns belong to whichever row is open — don't leak "open" state
+    // from one nominee's org chart into the next row you expand.
+    this.orgChartOpen.set(false);
+    this.historyOpen.set(false);
+  }
+
+  protected toggleOrgChart(): void {
+    this.orgChartOpen.update((open) => !open);
+  }
+
+  protected toggleHistory(): void {
+    this.historyOpen.update((open) => !open);
+  }
+
+  protected isVoucherSent(id: number): boolean {
+    return this.voucherSentIds().has(id);
+  }
+
+  protected toggleVoucherSent(id: number): void {
+    this.voucherSentIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }
 
   protected async toggleFavourite(row: NominationView): Promise<void> {

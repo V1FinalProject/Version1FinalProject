@@ -213,56 +213,208 @@
               <tr class="detail-row">
                 <td colspan="8">
                   <div class="detail">
-                    <div class="detail__narrative">
-                      <h3 class="detail__heading">What they did</h3>
-                      <p class="detail__body">{{ row.what }}</p>
-
-                      @if (row.how) {
-                        <h3 class="detail__heading">How it showed our values</h3>
-                        <p class="detail__body">{{ row.how }}</p>
-                      }
+                    <div class="detail__topbar">
+                      <p class="detail__voucher-note">
+                        Cash awards must be manually submitted on Reachdesk.
+                      </p>
+                      <label class="detail__voucher-check">
+                        <input
+                          type="checkbox"
+                          [checked]="isVoucherSent(row.id)"
+                          (change)="toggleVoucherSent(row.id)"
+                        />
+                        Mark voucher sent
+                      </label>
                     </div>
 
-                    <div class="detail__side">
-                      <h3 class="detail__heading">Flags</h3>
-                      @if (row.flags.length === 0) {
-                        <p class="detail__body detail__body--muted">
-                          No checker raised anything against this nomination.
-                        </p>
-                      } @else {
-                        <ul class="reasons">
-                          @for (flag of row.flags; track flag.tagName) {
-                            <li class="reason">
-                              <span class="chip chip--flag" [class]="flagClass(flag.tagName)">{{
-                                flag.tagName
-                              }}</span>
-                              <span class="reason__text">{{ flag.reasoning }}</span>
-                            </li>
+                    <div class="detail__card detail__card--nominee">
+                      <span class="detail__eyebrow">Nominee</span>
+                      <h3 class="detail__name">{{ row.nomineeName }}</h3>
+
+                      <div class="detail__field-grid">
+                        <div class="detail__field">
+                          <span class="detail__field-label">Job title</span>
+                          <span class="detail__field-value">{{
+                            row.nomineeProfile?.jobTitle ?? '—'
+                          }}</span>
+                        </div>
+                        <div class="detail__field">
+                          <span class="detail__field-label">Company</span>
+                          <span class="detail__field-value">{{
+                            row.nomineeProfile?.company ?? '—'
+                          }}</span>
+                        </div>
+                        <div class="detail__field">
+                          <span class="detail__field-label">Department</span>
+                          <span class="detail__field-value">{{
+                            row.nomineeProfile?.department ?? '—'
+                          }}</span>
+                        </div>
+                        <div class="detail__field">
+                          <span class="detail__field-label">Work location</span>
+                          <span class="detail__field-value">{{
+                            row.nomineeProfile?.workLocation ?? '—'
+                          }}</span>
+                        </div>
+                      </div>
+
+                      <p class="detail__email">{{ row.nomineeEmail }}</p>
+
+                      <div
+                        class="detail__stat-grid"
+                        title="Not tracked by the app yet — shown as a placeholder"
+                      >
+                        <div class="detail__stat">
+                          <span class="detail__stat-label">Team size</span>
+                          <span class="detail__stat-value">—</span>
+                        </div>
+                        <div class="detail__stat">
+                          <span class="detail__stat-label">Company size</span>
+                          <span class="detail__stat-value">—</span>
+                        </div>
+                        <div class="detail__stat">
+                          <span class="detail__stat-label">Reciprocity</span>
+                          <span class="detail__stat-value">—</span>
+                        </div>
+                        <div class="detail__stat">
+                          <span class="detail__stat-label">Past nominations</span>
+                          <span class="detail__stat-value">—</span>
+                        </div>
+                      </div>
+
+                      <div class="detail__reason-row">
+                        <div class="detail__reason">
+                          <span class="detail__field-label">Nomination reason</span>
+                          <p class="detail__reason-body">{{ row.what }}</p>
+                          @if (row.how) {
+                            <p class="detail__reason-body">{{ row.how }}</p>
                           }
-                        </ul>
-                      }
+                        </div>
 
-                      <h3 class="detail__heading">People</h3>
-                      <p class="detail__body detail__body--muted">
-                        <strong>{{ row.nominatorName }}</strong>
-                        @if (row.nominatorProfile; as profile) {
-                          ({{ profile.jobTitle }}, {{ profile.department }})
-                        }
-                        nominated
-                        <strong>{{ row.nomineeName }}</strong>
-                        @if (row.nomineeProfile; as profile) {
-                          ({{ profile.jobTitle }}, {{ profile.department }})
-                        }
-                      </p>
+                        <div class="detail__category-col">
+                          <span class="detail__field-label">Category</span>
+                          <p class="detail__category">{{ row.category }}</p>
 
-                      <h3 class="detail__heading">Submitted</h3>
+                          <span class="detail__field-label">Flags</span>
+                          <div class="flags">
+                            @for (flag of row.flags; track flag.tagName) {
+                              <span
+                                class="chip chip--flag"
+                                [class]="flagClass(flag.tagName)"
+                                [title]="flag.reasoning"
+                                >{{ flag.tagName }}</span
+                              >
+                            }
+                            @if (row.claudeReview && !row.claudeReview.isVersion1Values) {
+                              <span
+                                class="chip chip--flag chip--flag-routine"
+                                title="Claude's review didn't find this tied to a Version 1 core value."
+                                >Non-V1-values</span
+                              >
+                            }
+                            @if (row.flags.length === 0 && (!row.claudeReview || row.claudeReview.isVersion1Values)) {
+                              <span class="cell-none">None</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="detail__card detail__card--nominator">
+                      <span class="detail__eyebrow">Nominated by</span>
+                      <h3 class="detail__name">{{ row.nominatorName }}</h3>
+
+                      <div class="detail__field-grid">
+                        <div class="detail__field">
+                          <span class="detail__field-label">Job title</span>
+                          <span class="detail__field-value">{{
+                            row.nominatorProfile?.jobTitle ?? '—'
+                          }}</span>
+                        </div>
+                        <div class="detail__field">
+                          <span class="detail__field-label">Company</span>
+                          <span class="detail__field-value">{{
+                            row.nominatorProfile?.company ?? '—'
+                          }}</span>
+                        </div>
+                        <div class="detail__field">
+                          <span class="detail__field-label">Department</span>
+                          <span class="detail__field-value">{{
+                            row.nominatorProfile?.department ?? '—'
+                          }}</span>
+                        </div>
+                        <div class="detail__field">
+                          <span class="detail__field-label">Work location</span>
+                          <span class="detail__field-value">{{
+                            row.nominatorProfile?.workLocation ?? '—'
+                          }}</span>
+                        </div>
+                      </div>
+
+                      <p class="detail__email">{{ row.nominatorEmail }}</p>
                       <p class="detail__body detail__body--muted">
-                        {{ row.timestamp | date: 'd MMM yyyy, HH:mm' }} by
-                        {{ row.nominatorName }} ({{ row.nominatorEmail }})
+                        Submitted {{ row.timestamp | date: 'd MMM yyyy, HH:mm' }}
                         @if (row.practice) {
                           &middot; {{ row.practice }} &middot; {{ row.location }}
                         }
                       </p>
+                    </div>
+
+                    <div class="detail__subsection">
+                      <button
+                        type="button"
+                        class="detail__subtoggle"
+                        [attr.aria-expanded]="orgChartOpen()"
+                        (click)="toggleOrgChart()"
+                      >
+                        <span class="link__chevron" aria-hidden="true">{{
+                          orgChartOpen() ? '▾' : '▸'
+                        }}</span>
+                        Org chart
+                      </button>
+
+                      @if (orgChartOpen()) {
+                        <div class="detail__subpanel detail__orgchart">
+                          <p class="detail__body detail__body--muted">
+                            Reporting-line data isn&rsquo;t tracked yet, so this shows just the
+                            nominee and nominator.
+                          </p>
+                          <div class="orgchart__pair">
+                            <div class="orgchart__box orgchart__box--nominee">
+                              <strong>{{ row.nomineeName }}</strong>
+                              <span>{{ row.nomineeProfile?.jobTitle ?? '—' }}</span>
+                              <span class="orgchart__role">Nominee</span>
+                            </div>
+                            <div class="orgchart__box orgchart__box--nominator">
+                              <strong>{{ row.nominatorName }}</strong>
+                              <span>{{ row.nominatorProfile?.jobTitle ?? '—' }}</span>
+                              <span class="orgchart__role">Nominator</span>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="detail__subsection">
+                      <button
+                        type="button"
+                        class="detail__subtoggle"
+                        [attr.aria-expanded]="historyOpen()"
+                        (click)="toggleHistory()"
+                      >
+                        <span class="link__chevron" aria-hidden="true">{{
+                          historyOpen() ? '▾' : '▸'
+                        }}</span>
+                        View all previous nominations
+                      </button>
+
+                      @if (historyOpen()) {
+                        <div class="detail__subpanel">
+                          <p class="detail__body detail__body--muted">
+                            Nomination history per person isn&rsquo;t tracked yet.
+                          </p>
+                        </div>
+                      }
                     </div>
                   </div>
                 </td>
