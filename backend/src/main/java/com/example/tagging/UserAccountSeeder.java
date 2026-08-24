@@ -44,31 +44,45 @@ public class UserAccountSeeder {
         String hash = passwordEncoder.encode(DEMO_PASSWORD);
 
         List<UserAccount> accounts = List.of(
-                account("akos.bujdoso@version1.com", "Akos", "Bujdoso", "Associate Consultant", "IPSU",
-                        "Dublin", hash, AccountRole.EMPLOYEE),
-                account("leo.hickey@version1.com", "Leo", "Hickey", "Associate Consultant", "IPSU", "Dublin",
-                        hash, AccountRole.EMPLOYEE),
-                account("callum.oreilly@version1.com", "Callum", "O'Reilly", "Associate Consultant", "IPSU",
-                        "Dublin", hash, AccountRole.EMPLOYEE),
-                account("richard.herlihy@version1.com", "Richard", "Herlihy", "Associate Consultant", "IPSU",
-                        "Dublin", hash, AccountRole.EMPLOYEE),
-                account("luke.feeney@version1.com", "Luke", "Feeney", "Associate Consultant", "IPSU", "Dublin",
-                        hash, AccountRole.EMPLOYEE),
+                account("akos.bujdoso@version1.com", "Akos", "Bujdoso", "Associate Consultant",
+                        "Public Sector & Utilities (Ireland)", "IPSU Dept of Justice", "Dublin", hash,
+                        AccountRole.EMPLOYEE),
+                account("leo.hickey@version1.com", "Leo", "Hickey", "Associate Consultant",
+                        "Public Sector & Utilities (Ireland)", "IPSU DAFM Payments AgSchemes", "Dublin", hash,
+                        AccountRole.EMPLOYEE),
+                account("callum.oreilly@version1.com", "Callum", "O'Reilly", "Associate Consultant",
+                        "Public Sector & Utilities (Ireland)", "IPSU DAFM TLM International Trade", "Dublin", hash,
+                        AccountRole.EMPLOYEE),
+                account("richard.herlihy@version1.com", "Richard", "Herlihy", "Associate Consultant",
+                        "Public Sector & Utilities (Ireland)", "IPSU Dept of Justice", "Dublin", hash,
+                        AccountRole.EMPLOYEE),
+                account("luke.feeney@version1.com", "Luke", "Feeney", "Associate Consultant",
+                        "Public Sector & Utilities (Ireland)", "IPSU DAFM Payments AgSchemes", "Dublin", hash,
+                        AccountRole.EMPLOYEE),
 
                 // Shared role account, not a person - see AccountRole and the
-                // nominee-side check in NominationStore.add().
-                account("reviewer@version1.com", "Star Award", "Reviewer", "Reviewer", "People & Culture",
-                        "Dublin", hash, AccountRole.COORDINATOR),
+                // nominee-side check in NominationStore.add(). "People & Culture"
+                // isn't one of the stakeholder's division examples, so this is
+                // parked under Business Support (alongside Administration, IT
+                // Services & Operations) as the closest fit - flag if there's a
+                // dedicated HR division in the real dictionary.
+                account("reviewer@version1.com", "Star Award", "Reviewer", "Reviewer", "Business Support",
+                        "People & Culture", "Dublin", hash, AccountRole.COORDINATOR),
 
                 // Reuse names already present in the seed nominations dataset, so
                 // the reviewer panel resolves real matches immediately.
                 account("liam.quinn@version1.com", "Liam", "Quinn", "Senior Consultant",
-                        "Digital, Data & Cloud", "Belfast", hash, AccountRole.EMPLOYEE),
+                        "Digital, Data & Cloud", "DDC Cloud AWS Jaguar", "Belfast", hash, AccountRole.EMPLOYEE),
                 account("emer.powell@version1.com", "Emer", "Powell", "Consultant", "Enterprise Applications",
-                        "Cork", hash, AccountRole.EMPLOYEE),
-                account("sorcha.barry@version1.com", "Sorcha", "Barry", "Business Analyst", "Managed Services",
-                        "London", hash, AccountRole.EMPLOYEE),
-                account("conor.mccarthy@version1.com", "Conor", "McCarthy", "Technical Lead",
+                        "EA MS Cloud Europe", "Cork", hash, AccountRole.EMPLOYEE),
+                // "Managed Services" isn't in the stakeholder's division list either
+                // - best guess is Services Reliability Group (the closest ops/
+                // platform-support division on offer). Worth confirming.
+                account("sorcha.barry@version1.com", "Sorcha", "Barry", "Business Analyst",
+                        "Services Reliability Group", "Managed Services", "London", hash, AccountRole.EMPLOYEE),
+                // Same story - "Consulting & Advisory" has no clean match in the
+                // given list; parked under Business Support as a guess.
+                account("conor.mccarthy@version1.com", "Conor", "McCarthy", "Technical Lead", "Business Support",
                         "Consulting & Advisory", "Birmingham", hash, AccountRole.EMPLOYEE));
 
         repository.saveAll(accounts);
@@ -76,8 +90,8 @@ public class UserAccountSeeder {
     }
 
     private static UserAccount account(String email, String firstName, String lastName, String jobTitle,
-            String department, String workLocation, String passwordHash, AccountRole role) {
-        return new UserAccount(email, firstName, lastName, ContractType.PERMANENT, jobTitle, COMPANY, department,
-                workLocation, passwordHash, role);
+            String division, String department, String workLocation, String passwordHash, AccountRole role) {
+        return new UserAccount(email, firstName, lastName, ContractType.PERMANENT, jobTitle, COMPANY, division,
+                department, workLocation, passwordHash, role);
     }
 }

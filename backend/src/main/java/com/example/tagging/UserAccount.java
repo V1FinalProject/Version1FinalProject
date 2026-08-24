@@ -22,6 +22,13 @@ public class UserAccount {
     private ContractType contractType;
     private String jobTitle;
     private String company;
+    /**
+     * The business division, e.g. {@code "Public Sector & Utilities (Ireland)"}
+     * - one level up from {@link #department}, per the stakeholder's data
+     * dictionary. Not surfaced on the frontend yet; seeded so it's there when
+     * something needs it.
+     */
+    private String division;
     private String department;
     private String workLocation;
     /** BCrypt hash - never the raw password. */
@@ -32,14 +39,15 @@ public class UserAccount {
     }
 
     public UserAccount(String emailAddress, String firstName, String lastName, ContractType contractType,
-            String jobTitle, String company, String department, String workLocation, String passwordHash,
-            AccountRole role) {
+            String jobTitle, String company, String division, String department, String workLocation,
+            String passwordHash, AccountRole role) {
         this.emailAddress = emailAddress.toLowerCase();
         this.firstName = firstName;
         this.lastName = lastName;
         this.contractType = contractType;
         this.jobTitle = jobTitle;
         this.company = company;
+        this.division = division;
         this.department = department;
         this.workLocation = workLocation;
         this.passwordHash = passwordHash;
@@ -92,6 +100,14 @@ public class UserAccount {
 
     public void setCompany(String company) {
         this.company = company;
+    }
+
+    public String getDivision() {
+        return division;
+    }
+
+    public void setDivision(String division) {
+        this.division = division;
     }
 
     public String getDepartment() {
