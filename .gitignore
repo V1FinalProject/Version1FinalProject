@@ -1,5 +1,10 @@
 target/
 *.class
 .env
+.env.*.local
 .idea/
 .claude/
+.vscode/
+*.log
+Thumbs.db
+.DS_Store
