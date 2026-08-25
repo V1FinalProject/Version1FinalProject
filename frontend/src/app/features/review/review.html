@@ -44,53 +44,118 @@
   </div>
 
   <div class="toolbar">
-    <div class="tabs" role="tablist" aria-label="Filter nominations">
-      @for (tab of tabs; track tab.id) {
-        <button
-          type="button"
-          role="tab"
-          class="tab"
-          [class.tab--active]="filter() === tab.id"
-          [attr.aria-selected]="filter() === tab.id"
-          (click)="filter.set(tab.id)"
-        >
-          {{ tab.label }}
-          <span class="tab__count">{{ counts()[tab.id] }}</span>
-        </button>
-      }
+    <div class="toolbar__row">
+      <div class="tabs" role="tablist" aria-label="Filter nominations">
+        @for (tab of tabs; track tab.id) {
+          <button
+            type="button"
+            role="tab"
+            class="tab"
+            [class.tab--active]="filter() === tab.id"
+            [attr.aria-selected]="filter() === tab.id"
+            (click)="filter.set(tab.id)"
+          >
+            {{ tab.label }}
+            <span class="tab__count">{{ counts()[tab.id] }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="toolbar__actions">
+        @if (unreviewed().length > 0) {
+          <button
+            type="button"
+            class="btn btn--secondary btn--compact"
+            [disabled]="bulkProgress() !== null"
+            (click)="runAllClaudeReviews()"
+          >
+            @if (bulkProgress(); as progress) {
+              <span class="spinner" aria-hidden="true"></span>
+              Reviewing {{ progress.done }} / {{ progress.total }}
+            } @else {
+              Ask Claude to review {{ unreviewed().length }} unreviewed
+            }
+          </button>
+        }
+
+        @if (!showAllQuarters() && hiddenQuarterCount() > 0) {
+          <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(true)">
+            Show {{ hiddenQuarterCount() }} from closed quarters
+          </button>
+        } @else if (showAllQuarters()) {
+          <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(false)">
+            Show {{ quarter }} only
+          </button>
+        }
+      </div>
     </div>
 
-    @if (unreviewed().length > 0) {
-      <button
-        type="button"
-        class="btn btn--secondary btn--compact"
-        [disabled]="bulkProgress() !== null"
-        (click)="runAllClaudeReviews()"
-      >
-        @if (bulkProgress(); as progress) {
-          <span class="spinner" aria-hidden="true"></span>
-          Reviewing {{ progress.done }} / {{ progress.total }}
-        } @else {
-          Ask Claude to review {{ unreviewed().length }} unreviewed
-        }
-      </button>
-    }
+    <div class="toolbar__row toolbar__row--filters">
+      <div class="search">
+        <svg class="search__icon" viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <line
+            x1="13.6"
+            y1="13.6"
+            x2="18"
+            y2="18"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+        <input
+          type="search"
+          class="search__input"
+          placeholder="Search by nominee or nominator name"
+          aria-label="Search nominations by nominee or nominator name"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+        />
+      </div>
 
-    @if (!showAllQuarters() && hiddenQuarterCount() > 0) {
-      <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(true)">
-        Show {{ hiddenQuarterCount() }} from closed quarters
-      </button>
-    } @else if (showAllQuarters()) {
-      <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(false)">
-        Show {{ quarter }} only
-      </button>
-    }
+      <div class="category-filter">
+        <button
+          type="button"
+          class="category-filter__toggle"
+          [class.category-filter__toggle--active]="selectedCategories().size > 0"
+          [attr.aria-expanded]="categoryMenuOpen()"
+          (click)="toggleCategoryMenu()"
+        >
+          Category
+          @if (selectedCategories().size > 0) {
+            <span class="tab__count">{{ selectedCategories().size }}</span>
+          }
+          <span class="link__chevron" aria-hidden="true">{{ categoryMenuOpen() ? '▾' : '▸' }}</span>
+        </button>
+
+        @if (categoryMenuOpen()) {
+          <div class="category-filter__panel" role="group" aria-label="Filter by category">
+            @for (category of categoryOptions; track category.id) {
+              <label class="category-filter__option">
+                <input
+                  type="checkbox"
+                  [checked]="isCategorySelected(category.label)"
+                  (change)="toggleCategory(category.label)"
+                />
+                {{ category.label }}
+              </label>
+            }
+            @if (selectedCategories().size > 0) {
+              <button type="button" class="category-filter__clear" (click)="clearCategories()">
+                Clear categories
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
   </div>
 
   @if (loading()) {
     <p class="empty">Loading nominations&hellip;</p>
   } @else if (visibleRows().length === 0) {
-    <p class="empty">Nothing here. Try another filter.</p>
+    <p class="empty">Nothing matches. Try another tab, category or search term.</p>
   } @else {
     <div class="table-wrap">
       <table class="table">
