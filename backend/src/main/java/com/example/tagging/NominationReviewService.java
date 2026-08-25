@@ -29,14 +29,19 @@ public class NominationReviewService {
     private final TaggingService taggingService;
     private final ClaudeNominationReviewer claudeReviewer;
     private final UserAccountRepository users;
+    private final OrgSizeLookup orgSizes;
+    private final ReciprocityService reciprocity;
 
     public NominationReviewService(NominationStore nominations, ReviewStateStore reviewState,
-            TaggingService taggingService, ClaudeNominationReviewer claudeReviewer, UserAccountRepository users) {
+            TaggingService taggingService, ClaudeNominationReviewer claudeReviewer, UserAccountRepository users,
+            OrgSizeLookup orgSizes, ReciprocityService reciprocity) {
         this.nominations = nominations;
         this.reviewState = reviewState;
         this.taggingService = taggingService;
         this.claudeReviewer = claudeReviewer;
         this.users = users;
+        this.orgSizes = orgSizes;
+        this.reciprocity = reciprocity;
     }
 
     /** Every nomination, newest first, with its flags and current review state. */
@@ -134,16 +139,34 @@ public class NominationReviewService {
                 nomination.justification(),
                 nomination.practice(),
                 nomination.location(),
+                nomination.quarter(),
                 taggingService.evaluate(nomination, allNominations),
                 reviewState.claudeReviewOf(nomination.id()).orElse(null),
                 reviewState.statusOf(nomination.id()),
                 reviewState.isFavourite(nomination.id()),
                 profileOf(nomination.nominatorEmail()),
-                profileOf(nomination.nomineeEmail()));
+                profileOf(nomination.nomineeEmail()),
+                reciprocity.reciprocityPercent(nomination, allNominations),
+                reciprocity.pastNominationsCount(nomination, allNominations),
+                historyEntries(reciprocity.nominatorHistory(nomination, allNominations), true),
+                historyEntries(reciprocity.nomineeHistory(nomination, allNominations), false));
     }
 
     private PersonSummary profileOf(String email) {
-        return users.findByEmailAddressIgnoreCase(email).map(PersonSummary::from).orElse(null);
+        return users.findByEmailAddressIgnoreCase(email).map(account -> PersonSummary.from(account, orgSizes)).orElse(null);
+    }
+
+    /**
+     * Maps raw nominations into the history entries the frontend shows,
+     * pulling in each one's current review status. {@code fromNominatorSide}
+     * picks what {@code counterpartName} means - see
+     * {@link NominationHistoryEntry}'s Javadoc.
+     */
+    private List<NominationHistoryEntry> historyEntries(List<Nomination> history, boolean fromNominatorSide) {
+        return history.stream()
+                .map(n -> new NominationHistoryEntry(n.id(), n.quarter(), n.category(),
+                        fromNominatorSide ? n.nomineeName() : n.nominatorName(), reviewState.statusOf(n.id())))
+                .toList();
     }
 
     private Nomination require(int id) {

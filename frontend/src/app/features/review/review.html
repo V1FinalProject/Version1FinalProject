@@ -75,6 +75,16 @@
         }
       </button>
     }
+
+    @if (!showAllQuarters() && hiddenQuarterCount() > 0) {
+      <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(true)">
+        Show {{ hiddenQuarterCount() }} from closed quarters
+      </button>
+    } @else if (showAllQuarters()) {
+      <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(false)">
+        Show {{ quarter }} only
+      </button>
+    }
   </div>
 
   @if (loading()) {
@@ -260,25 +270,33 @@
 
                       <p class="detail__email">{{ row.nomineeEmail }}</p>
 
-                      <div
-                        class="detail__stat-grid"
-                        title="Not tracked by the app yet — shown as a placeholder"
-                      >
+                      <div class="detail__stat-grid">
                         <div class="detail__stat">
                           <span class="detail__stat-label">Team size</span>
-                          <span class="detail__stat-value">—</span>
+                          <span class="detail__stat-value">{{
+                            row.nomineeProfile?.teamSize ?? '—'
+                          }}</span>
                         </div>
                         <div class="detail__stat">
                           <span class="detail__stat-label">Company size</span>
-                          <span class="detail__stat-value">—</span>
+                          <span class="detail__stat-value">{{
+                            row.nomineeProfile?.companySize ?? '—'
+                          }}</span>
                         </div>
-                        <div class="detail__stat">
+                        <div
+                          class="detail__stat"
+                          title="How much of this nominee's small reciprocal circle nominates back"
+                        >
                           <span class="detail__stat-label">Reciprocity</span>
-                          <span class="detail__stat-value">—</span>
+                          <span
+                            class="detail__stat-value"
+                            [class]="reciprocityClass(row.reciprocityPercent)"
+                            >{{ row.reciprocityPercent }}%</span
+                          >
                         </div>
                         <div class="detail__stat">
                           <span class="detail__stat-label">Past nominations</span>
-                          <span class="detail__stat-value">—</span>
+                          <span class="detail__stat-value">{{ row.pastNominationsCount }}</span>
                         </div>
                       </div>
 
@@ -409,10 +427,58 @@
                       </button>
 
                       @if (historyOpen()) {
-                        <div class="detail__subpanel">
-                          <p class="detail__body detail__body--muted">
-                            Nomination history per person isn&rsquo;t tracked yet.
-                          </p>
+                        <div class="detail__subpanel detail__history">
+                          <div class="detail__history-col">
+                            <h4 class="detail__history-heading">
+                              {{ row.nominatorName }}&rsquo;s past nominations
+                            </h4>
+                            @if (row.nominatorHistory.length === 0) {
+                              <p class="detail__body detail__body--muted">
+                                No other nominations submitted.
+                              </p>
+                            } @else {
+                              <ul class="detail__history-list">
+                                @for (entry of row.nominatorHistory; track entry.id) {
+                                  <li class="detail__history-entry">
+                                    <span class="detail__history-quarter">{{ entry.quarter }}</span>
+                                    <span
+                                      >nominated <strong>{{ entry.counterpartName }}</strong> for
+                                      {{ entry.category }}</span
+                                    >
+                                    <span class="status" [class]="statusClass(entry.status)">{{
+                                      entry.status
+                                    }}</span>
+                                  </li>
+                                }
+                              </ul>
+                            }
+                          </div>
+
+                          <div class="detail__history-col">
+                            <h4 class="detail__history-heading">
+                              {{ row.nomineeName }}&rsquo;s past nominations
+                            </h4>
+                            @if (row.nomineeHistory.length === 0) {
+                              <p class="detail__body detail__body--muted">
+                                No other nominations received.
+                              </p>
+                            } @else {
+                              <ul class="detail__history-list">
+                                @for (entry of row.nomineeHistory; track entry.id) {
+                                  <li class="detail__history-entry">
+                                    <span class="detail__history-quarter">{{ entry.quarter }}</span>
+                                    <span
+                                      >nominated by <strong>{{ entry.counterpartName }}</strong> for
+                                      {{ entry.category }}</span
+                                    >
+                                    <span class="status" [class]="statusClass(entry.status)">{{
+                                      entry.status
+                                    }}</span>
+                                  </li>
+                                }
+                              </ul>
+                            }
+                          </div>
                         </div>
                       }
                     </div>

@@ -15,6 +15,20 @@ export interface FlagResult {
   reasoning: string;
 }
 
+/**
+ * One earlier nomination shown in the "previous nominations" history —
+ * either something the nominator submitted before, or something the nominee
+ * received before. `counterpartName` is the nominee they nominated on the
+ * nominator's side, or the nominator who nominated them on the nominee's side.
+ */
+export interface NominationHistoryEntry {
+  id: number;
+  quarter: string;
+  category: string;
+  counterpartName: string;
+  status: ReviewStatus;
+}
+
 /** Claude's verdict on a nomination. */
 export interface ClaudeReviewResult {
   /** False for spam, gibberish, jokes — anything that isn't a real nomination. */
@@ -34,6 +48,13 @@ export interface PersonSummary {
   company: string;
   workLocation: string;
   contractType: string;
+  /** Headcount of `department`. Null if there's no matching org_units row. */
+  teamSize: number | null;
+  /**
+   * Headcount of the person's *division*, not a literal company field — see
+   * `OrgUnitSize`'s Javadoc on the backend. Null if there's no matching row.
+   */
+  companySize: number | null;
 }
 
 /** One row of the dashboard. */
@@ -58,6 +79,9 @@ export interface NominationView {
   practice: string | null;
   location: string | null;
 
+  /** The programme round this nomination belongs to, e.g. `Q4 2026`. */
+  quarter: string;
+
   flags: FlagResult[];
   /** Null until the nomination has been sent to Claude. */
   claudeReview: ClaudeReviewResult | null;
@@ -67,4 +91,13 @@ export interface NominationView {
   /** Null if the account can't be found (nominations don't require one to exist). */
   nominatorProfile: PersonSummary | null;
   nomineeProfile: PersonSummary | null;
+
+  /** 0–100. How much of the nominee's small reciprocal circle nominates back. */
+  reciprocityPercent: number;
+  /** How many other times this nominee has been nominated, any quarter, any status. */
+  pastNominationsCount: number;
+  /** Every other nomination this nominator has submitted, most recent first. */
+  nominatorHistory: NominationHistoryEntry[];
+  /** Every other nomination this nominee has received, most recent first. */
+  nomineeHistory: NominationHistoryEntry[];
 }

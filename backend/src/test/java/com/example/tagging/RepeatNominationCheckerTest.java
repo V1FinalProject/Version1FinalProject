@@ -2,7 +2,6 @@ package com.example.tagging;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,13 +14,10 @@ class RepeatNominationCheckerTest {
 
     @Test
     void flagsSameNomineeNominatedInImmediatelyPrecedingQuarter() {
-        // Prior in Q1 (Feb), target in Q2 (May) -> preceding quarter matches.
-        Nomination prior = nomination().id(1)
-                .timestamp(LocalDateTime.of(2025, 2, 10, 9, 0))
+        Nomination prior = nomination().id(1).quarter("Q1 2025")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
-        Nomination target = nomination().id(2)
-                .timestamp(LocalDateTime.of(2025, 5, 10, 9, 0))
+        Nomination target = nomination().id(2).quarter("Q2 2025")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
 
@@ -34,12 +30,10 @@ class RepeatNominationCheckerTest {
 
     @Test
     void crossesYearBoundaryFromQ1BackToPreviousQ4() {
-        Nomination prior = nomination().id(1)
-                .timestamp(LocalDateTime.of(2024, 11, 1, 9, 0)) // Q4 2024
+        Nomination prior = nomination().id(1).quarter("Q4 2024")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
-        Nomination target = nomination().id(2)
-                .timestamp(LocalDateTime.of(2025, 1, 15, 9, 0)) // Q1 2025
+        Nomination target = nomination().id(2).quarter("Q1 2025")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
 
@@ -51,12 +45,10 @@ class RepeatNominationCheckerTest {
 
     @Test
     void doesNotFlagWhenPriorIsSameQuarterNotPreceding() {
-        Nomination prior = nomination().id(1)
-                .timestamp(LocalDateTime.of(2025, 5, 1, 9, 0)) // same Q2
+        Nomination prior = nomination().id(1).quarter("Q2 2025")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
-        Nomination target = nomination().id(2)
-                .timestamp(LocalDateTime.of(2025, 6, 1, 9, 0)) // Q2
+        Nomination target = nomination().id(2).quarter("Q2 2025")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
 
@@ -65,12 +57,10 @@ class RepeatNominationCheckerTest {
 
     @Test
     void doesNotFlagDifferentNominee() {
-        Nomination prior = nomination().id(1)
-                .timestamp(LocalDateTime.of(2025, 2, 10, 9, 0))
+        Nomination prior = nomination().id(1).quarter("Q1 2025")
                 .nominee("Carol Other", "carol@example.com")
                 .build();
-        Nomination target = nomination().id(2)
-                .timestamp(LocalDateTime.of(2025, 5, 10, 9, 0))
+        Nomination target = nomination().id(2).quarter("Q2 2025")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
 
@@ -79,12 +69,10 @@ class RepeatNominationCheckerTest {
 
     @Test
     void nomineeEmailMatchIsCaseInsensitive() {
-        Nomination prior = nomination().id(1)
-                .timestamp(LocalDateTime.of(2025, 2, 10, 9, 0))
+        Nomination prior = nomination().id(1).quarter("Q1 2025")
                 .nominee("Bob Nominee", "BOB@EXAMPLE.COM")
                 .build();
-        Nomination target = nomination().id(2)
-                .timestamp(LocalDateTime.of(2025, 5, 10, 9, 0))
+        Nomination target = nomination().id(2).quarter("Q2 2025")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
 
@@ -93,8 +81,7 @@ class RepeatNominationCheckerTest {
 
     @Test
     void ignoresTheTargetItselfWhenScanning() {
-        Nomination target = nomination().id(2)
-                .timestamp(LocalDateTime.of(2025, 5, 10, 9, 0))
+        Nomination target = nomination().id(2).quarter("Q2 2025")
                 .nominee("Bob Nominee", "bob@example.com")
                 .build();
 

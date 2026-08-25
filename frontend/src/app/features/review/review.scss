@@ -651,10 +651,9 @@ $dashboard-width: 82rem;
   color: var(--brand-navy-700);
 }
 
-/* Team size / company size / reciprocity / past nominations — no backend
-   field exists for any of these yet (see docs), so they render as
-   placeholders rather than fabricated numbers a reviewer could mistake for
-   a real signal. */
+/* Team size / company size / reciprocity / past nominations. Team/company
+   size and past-nomination count show an em dash when there's no matching
+   org_units row rather than a fabricated number. */
 .detail__stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
@@ -662,7 +661,7 @@ $dashboard-width: 82rem;
   margin-top: 0.875rem;
   padding: 0.75rem;
   background: rgba(255, 255, 255, 0.55);
-  border: 1px dashed var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
 }
 
@@ -685,6 +684,22 @@ $dashboard-width: 82rem;
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-subtle);
+}
+
+/* Reciprocity colour bands — low reuses the accept-green, high the
+   reject-red, so it reads on the same scale as the rest of the dashboard
+   rather than introducing a new colour language. Medium reuses the amber
+   already used for the "Weak Justification" flag chip. */
+.detail__stat-value--low {
+  color: var(--success);
+}
+
+.detail__stat-value--medium {
+  color: #8a4b00;
+}
+
+.detail__stat-value--high {
+  color: var(--danger);
 }
 
 .detail__reason-row {
@@ -757,6 +772,51 @@ $dashboard-width: 82rem;
 
 .detail__subpanel {
   margin-top: 0.75rem;
+}
+
+.detail__history {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 45rem) {
+  .detail__history {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail__history-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.detail__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail__history-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--text);
+}
+
+.detail__history-quarter {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .orgchart__pair {

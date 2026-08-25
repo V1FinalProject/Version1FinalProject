@@ -25,6 +25,8 @@ public record NominationView(
         String justification,
         String practice,
         String location,
+        /** The programme round this nomination belongs to, e.g. {@code "Q4 2026"} - see {@link Quarter}. */
+        String quarter,
         List<FlagResult> flags,
         ClaudeReviewResult claudeReview,
         ReviewStatus status,
@@ -32,5 +34,13 @@ public record NominationView(
         /** Null if the nominator's account can't be found (nominations don't require one to exist). */
         PersonSummary nominatorProfile,
         /** Null if the nominee's account can't be found (nominations don't require one to exist). */
-        PersonSummary nomineeProfile) {
+        PersonSummary nomineeProfile,
+        /** 0-100. See {@link ReciprocityService}. */
+        int reciprocityPercent,
+        /** How many other times this nominee has been nominated, any quarter, any status. */
+        int pastNominationsCount,
+        /** Every other nomination this nominator has submitted, most recent first. */
+        List<NominationHistoryEntry> nominatorHistory,
+        /** Every other nomination this nominee has received, most recent first. */
+        List<NominationHistoryEntry> nomineeHistory) {
 }

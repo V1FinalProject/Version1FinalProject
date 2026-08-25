@@ -21,14 +21,27 @@ public class UserAccount {
     private String lastName;
     private ContractType contractType;
     private String jobTitle;
+    /**
+     * The client organisation the person actually delivers work for, e.g.
+     * {@code "DAFM"} - only meaningful for client-facing (currently Public
+     * Sector) accounts. Elsewhere in the business there's no real per-client
+     * data, so this holds {@code "Version 1"} as a placeholder instead.
+     */
     private String company;
     /**
-     * The business division, e.g. {@code "Public Sector & Utilities (Ireland)"}
-     * - one level up from {@link #department}, per the stakeholder's data
-     * dictionary. Not surfaced on the frontend yet; seeded so it's there when
-     * something needs it.
+     * The broad business division, e.g. {@code "Public Sector"} - the
+     * top-level grouping from the stakeholder's data dictionary, generalised
+     * across regions (Ireland/UK) rather than naming one.
      */
     private String division;
+    /**
+     * The specific business unit within {@link #division}, e.g.
+     * {@code "Public Sector & Utilities (Ireland)"} - one level up from
+     * {@link #department}. Null where there's no known tier more specific
+     * than {@link #division} itself. Not surfaced on the frontend yet; seeded
+     * so it's there when something needs it.
+     */
+    private String businessUnit;
     private String department;
     private String workLocation;
     /** BCrypt hash - never the raw password. */
@@ -39,8 +52,8 @@ public class UserAccount {
     }
 
     public UserAccount(String emailAddress, String firstName, String lastName, ContractType contractType,
-            String jobTitle, String company, String division, String department, String workLocation,
-            String passwordHash, AccountRole role) {
+            String jobTitle, String company, String division, String businessUnit, String department,
+            String workLocation, String passwordHash, AccountRole role) {
         this.emailAddress = emailAddress.toLowerCase();
         this.firstName = firstName;
         this.lastName = lastName;
@@ -48,6 +61,7 @@ public class UserAccount {
         this.jobTitle = jobTitle;
         this.company = company;
         this.division = division;
+        this.businessUnit = businessUnit;
         this.department = department;
         this.workLocation = workLocation;
         this.passwordHash = passwordHash;
@@ -108,6 +122,14 @@ public class UserAccount {
 
     public void setDivision(String division) {
         this.division = division;
+    }
+
+    public String getBusinessUnit() {
+        return businessUnit;
+    }
+
+    public void setBusinessUnit(String businessUnit) {
+        this.businessUnit = businessUnit;
     }
 
     public String getDepartment() {

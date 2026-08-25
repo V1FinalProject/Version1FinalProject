@@ -62,6 +62,13 @@ export class Review {
   protected readonly loadError = signal<string | null>(null);
   protected readonly filter = signal<ReviewFilter>('PENDING');
 
+  /**
+   * Q1–Q3 are already closed out by the time Q4 reviewing starts, so they're
+   * hidden by default to keep the queue to what's actually being reviewed —
+   * this just reveals them again rather than re-fetching anything.
+   */
+  protected readonly showAllQuarters = signal(false);
+
   /** The one row whose detail panel is open, if any. */
   protected readonly expandedId = signal<number | null>(null);
 
@@ -86,8 +93,19 @@ export class Review {
   /** Progress of the "Review all pending" run, or null when it isn't running. */
   protected readonly bulkProgress = signal<{ done: number; total: number } | null>(null);
 
-  protected readonly counts = computed(() => {
+  /** Rows for the current programme round, unless "show all quarters" is on. */
+  protected readonly quarterRows = computed(() => {
     const rows = this.rows();
+    return this.showAllQuarters() ? rows : rows.filter((row) => row.quarter === this.quarter);
+  });
+
+  /** How many rows "show all quarters" would add back in — drives the toggle's label. */
+  protected readonly hiddenQuarterCount = computed(
+    () => this.rows().length - this.quarterRows().length,
+  );
+
+  protected readonly counts = computed(() => {
+    const rows = this.quarterRows();
     return {
       ALL: rows.length,
       PENDING: rows.filter((row) => row.status === 'PENDING').length,
@@ -100,7 +118,7 @@ export class Review {
 
   protected readonly visibleRows = computed(() => {
     const filter = this.filter();
-    const rows = this.rows();
+    const rows = this.quarterRows();
 
     if (filter === 'ALL') {
       return rows;
@@ -113,7 +131,7 @@ export class Review {
 
   /** Nominations Claude hasn't seen yet — what "Review all pending" works through. */
   protected readonly unreviewed = computed(() =>
-    this.rows().filter((row) => row.claudeReview === null),
+    this.quarterRows().filter((row) => row.claudeReview === null),
   );
 
   constructor() {
@@ -143,6 +161,19 @@ export class Review {
     return FLAG_CLASSES[tagName] ?? '';
   }
 
+  /**
+   * Colour band for the reciprocity stat — low is unremarkable, high starts
+   * to look like a closed nominate-each-other loop. Bands match the flag
+   * chip palette (weak/neutral, routine/amber, reciprocal/red) rather than
+   * introducing a new colour language.
+   */
+  protected reciprocityClass(percent: number): string {
+    if (percent >= 70) {
+      return 'detail__stat-value--high';
+    }
+    return percent >= 40 ? 'detail__stat-value--medium' : 'detail__stat-value--low';
+  }
+
   protected toggleExpanded(id: number): void {
     this.expandedId.update((current) => (current === id ? null : id));
     // Sub-dropdowns belong to whichever row is open — don't leak "open" state
@@ -157,6 +188,11 @@ export class Review {
 
   protected toggleHistory(): void {
     this.historyOpen.update((open) => !open);
+  }
+
+  /** Same `status--*` colour class the row's own status pill uses. */
+  protected statusClass(status: ReviewStatus): string {
+    return 'status--' + status.toLowerCase();
   }
 
   protected isVoucherSent(id: number): boolean {
