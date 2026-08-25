@@ -29,15 +29,15 @@ note if anything felt off (even if it technically passed).
 
 | # | Steps | Expected | Result | Notes                                                                                                                                                                                                                                 |
 | --- | --- | --- |--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 8 | Start typing a colleague's email in the nominee field | Live preview shows their name/department once it matches | Pass   | Does not auto fill full name based on email, not bug, only potential feature                                                                                                                                                          |
+| 8 | Start typing a colleague's email in the nominee field | Live preview shows their name/department once it matches | Pass   | Doesn't auto-fill the full name based on the email — not a bug, just a potential feature.                                                                                                                                             |
 | 9 | Enter an email that isn't a real Version 1 account | Validation error, can't submit | Pass   |                                                                                                                                                                                                                                       |
 | 10 | Try to nominate yourself | Blocked with a clear message | Pass   |                                                                                                                                                                                                                                       |
 | 11 | Leave WHAT or HOW under the minimum length | Blocked, counter shows red/warning | Pass   |                                                                                                                                                                                                                                       |
 | 12 | Fill WHAT/HOW past the max length | Blocked, counter shows over-limit | Pass   |                                                                                                                                                                                                                                       |
-| 13 | Pick a category and check the tooltip/examples | Examples shown match the category | Pass   | Examples tooltip not shown on smaller displays, fine on large screens                                                                                                                                                                 |
-| 14 | Fill the form out properly and submit | Confirmation screen with a reference number | Pass   | Server slow to process form and display confirmation                                                                                                                                                                                  |
+| 13 | Pick a category and check the tooltip/examples | Examples shown match the category | Pass   | Examples tooltip isn't shown on smaller displays — fine on larger screens.                                                                                                                                                            |
+| 14 | Fill the form out properly and submit | Confirmation screen with a reference number | Pass   | Server was slow to process the form and display the confirmation.                                                                                                                                                                     |
 | 15 | After submitting, try to submit another nomination | No "submit another" option offered | Pass   |                                                                                                                                                                                                                                       |
-| 16 | Already submitted this round — go straight back to `/nominate` (not through the confirmation button) and submit again for the same colleague | Should be blocked or warned: one nomination per person per round | Fail   | Known gap, not a bug found today — only signposted (confirmation screen hides the resubmit button); nothing actually stops a fresh visit to `/nominate` from submitting a duplicate. Documented in `frontend/README.md`'s Known gaps. |
+| 16 | Already submitted this round — go straight back to `/nominate` (not through the confirmation button) and submit again for the same colleague | Should be blocked or warned: one nomination per person per round | Pass   | Fixed since this was first tested — the API now rejects a second nomination in the same quarter with a clear message on the form.                                                                                                    |
 
 ## Review dashboard (as the coordinator)
 
@@ -45,12 +45,12 @@ note if anything felt off (even if it technically passed).
 | --- | --- | --- |--------|------------------------------------------------------------------------------------------------------------------------------|
 | 17 | Open the dashboard | List of nominations loads, Pending tab selected by default | Pass   | Due to free tier backend/database hosting, serving is slow                                                                   |
 | 18 | Switch between Pending / Accepted / Rejected / Shortlist / All tabs | Each shows the right subset, counts match | Pass   | Counts correct                                                                                                               |
-| 19 | Expand a nomination row | Nominator/nominee detail (job title, department, etc.) shown | Pass   | Dropdown information hard to digest, future expansion perhapsa necessary                                                     |
+| 19 | Expand a nomination row | Nominator/nominee detail (job title, department, etc.) shown | Pass   | Dropdown information is hard to digest — perhaps some future expansion is necessary.                                         |
 | 20 | Accept a nomination | Moves to Accepted, decision can be undone | Pass   |                                                                                                                              |
 | 21 | Reject a nomination | Moves to Rejected, decision can be undone | Pass   |                                                                                                                              |
 | 22 | Star a nomination | Appears under Shortlist | Pass   |                                                                                                                              |
 | 23 | Run a Claude review on one nomination | Verdict appears, doesn't block the rest of the page | Pass   |                                                                                                                              |
-| 24 | Run "Review all pending" | Works through the queue, shows progress, doesn't stall on one failure | Fail   | Claude API account ran out of tokens during testing. Considered dropping for final version. (Not necessary for requirements) |
+| 24 | Run "Review all pending" | Works through the queue, shows progress, doesn't stall on one failure | Fail   | Claude API account ran out of tokens during testing. Considering dropping this for the final version (not necessary for requirements). |
 | 25 | Check a nomination with a rule-based flag (e.g. weak justification) | Flag chip shown with reasoning | Pass   |                                                                                                                              |
 
 ## Access control
@@ -63,7 +63,7 @@ note if anything felt off (even if it technically passed).
 ## Sign-off
 
 **Overall result:** Pass with issues
-**Issues found:** From can be submitted more than one time per quarter.
+**Issues found:** #16 (form could be submitted more than once per quarter) was fixed after this round of testing. #24 (Claude bulk review ran out of API tokens) is still outstanding but not necessary for requirements.
 
 
 **Ready for presentation?** Y
