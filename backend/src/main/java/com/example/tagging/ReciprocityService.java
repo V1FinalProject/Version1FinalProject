@@ -61,25 +61,33 @@ public class ReciprocityService {
 
     /** How many other times this nominee has been nominated, any quarter, any status. */
     public int pastNominationsCount(Nomination target, List<Nomination> allNominations) {
-        return nomineeHistory(target, allNominations).size();
+        return personHistory(target.nomineeEmail(), target.id(), allNominations).size();
     }
 
-    /** Every other nomination this nominator has submitted, most recent first. */
-    public List<Nomination> nominatorHistory(Nomination target, List<Nomination> allNominations) {
+    /**
+     * Every other nomination touching this person - either as nominator or as
+     * nominee - most recent first. Replaces the old nominator-only/nominee-only
+     * split so the detail panel can show a person's full history, not just
+     * half of it.
+     */
+    public List<Nomination> personHistory(String personEmail, int excludeId, List<Nomination> allNominations) {
         return allNominations.stream()
-                .filter(other -> other.id() != target.id())
-                .filter(other -> other.nominatorEmail().equalsIgnoreCase(target.nominatorEmail()))
+                .filter(other -> other.id() != excludeId)
+                .filter(other -> other.nominatorEmail().equalsIgnoreCase(personEmail)
+                        || other.nomineeEmail().equalsIgnoreCase(personEmail))
                 .sorted(Comparator.comparing(Nomination::timestamp).reversed())
                 .toList();
     }
 
-    /** Every other nomination this nominee has received, most recent first. */
-    public List<Nomination> nomineeHistory(Nomination target, List<Nomination> allNominations) {
-        return allNominations.stream()
-                .filter(other -> other.id() != target.id())
-                .filter(other -> other.nomineeEmail().equalsIgnoreCase(target.nomineeEmail()))
-                .sorted(Comparator.comparing(Nomination::timestamp).reversed())
-                .toList();
+    /**
+     * Whether this pair have nominated each other at some point - any quarter,
+     * any status, no time window - including the nomination currently being
+     * reviewed. Deliberately simpler than {@link #reciprocityPercent}: that
+     * stat scores a small time-windowed group, this just answers "did these
+     * two ever nominate each other" for highlighting one history row.
+     */
+    public boolean reciprocalPair(String aEmail, String bEmail, List<Nomination> allNominations) {
+        return nominated(aEmail, bEmail, allNominations) && nominated(bEmail, aEmail, allNominations);
     }
 
     private List<Nomination> withinWindow(Nomination target, List<Nomination> allNominations) {

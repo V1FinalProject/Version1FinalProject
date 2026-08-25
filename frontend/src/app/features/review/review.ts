@@ -55,6 +55,7 @@ export class Review {
   private readonly reviews = inject(ReviewService);
 
   protected readonly quarter = CURRENT_QUARTER;
+  protected readonly closedQuarterTitle = 'This quarter is closed — no further changes.';
   protected readonly tabs = FILTER_TABS;
   /** The five fixed nomination categories, for the filter dropdown. */
   protected readonly categoryOptions = NOMINATION_CATEGORIES;
@@ -182,6 +183,17 @@ export class Review {
 
   protected isBusy(id: number): boolean {
     return this.busyIds().has(id);
+  }
+
+  /**
+   * Once a quarter's reviewing window has passed, its rows are read-only —
+   * Review/Accept/Reject are greyed out so a closed quarter can't quietly
+   * change after the fact. Not a hard backend guarantee (the bulk "Ask
+   * Claude" run and the API itself still allow it), just a UI guard against
+   * doing it by accident.
+   */
+  protected isClosedQuarter(row: NominationView): boolean {
+    return row.quarter !== this.quarter;
   }
 
   protected isCategorySelected(label: string): boolean {

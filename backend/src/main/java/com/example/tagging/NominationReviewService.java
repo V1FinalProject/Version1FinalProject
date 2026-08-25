@@ -148,8 +148,10 @@ public class NominationReviewService {
                 profileOf(nomination.nomineeEmail()),
                 reciprocity.reciprocityPercent(nomination, allNominations),
                 reciprocity.pastNominationsCount(nomination, allNominations),
-                historyEntries(reciprocity.nominatorHistory(nomination, allNominations), true),
-                historyEntries(reciprocity.nomineeHistory(nomination, allNominations), false));
+                historyEntries(nomination.nominatorEmail(), nomination.nomineeEmail(), nomination.id(),
+                        allNominations),
+                historyEntries(nomination.nomineeEmail(), nomination.nominatorEmail(), nomination.id(),
+                        allNominations));
     }
 
     private PersonSummary profileOf(String email) {
@@ -157,15 +159,31 @@ public class NominationReviewService {
     }
 
     /**
-     * Maps raw nominations into the history entries the frontend shows,
-     * pulling in each one's current review status. {@code fromNominatorSide}
-     * picks what {@code counterpartName} means - see
-     * {@link NominationHistoryEntry}'s Javadoc.
+     * Builds one person's full nomination history - both the times they
+     * nominated someone and the times they were nominated. {@code otherEmail}
+     * is the other person in the nomination currently being reviewed (the
+     * nominee, when {@code personEmail} is the nominator, and vice versa) -
+     * an entry is only flagged {@code reciprocal} when it's specifically
+     * between this pair and they've nominated each other back at some point,
+     * not merely because {@code personEmail} has a reciprocal history with
+     * someone else entirely. See {@link NominationHistoryEntry}'s Javadoc.
      */
-    private List<NominationHistoryEntry> historyEntries(List<Nomination> history, boolean fromNominatorSide) {
-        return history.stream()
-                .map(n -> new NominationHistoryEntry(n.id(), n.quarter(), n.category(),
-                        fromNominatorSide ? n.nomineeName() : n.nominatorName(), reviewState.statusOf(n.id())))
+    private List<NominationHistoryEntry> historyEntries(String personEmail, String otherEmail, int excludeId,
+            List<Nomination> allNominations) {
+        boolean pairReciprocal = reciprocity.reciprocalPair(personEmail, otherEmail, allNominations);
+
+        return reciprocity.personHistory(personEmail, excludeId, allNominations).stream()
+                .map(n -> {
+                    boolean outbound = n.nominatorEmail().equalsIgnoreCase(personEmail);
+                    String counterpartEmail = outbound ? n.nomineeEmail() : n.nominatorEmail();
+                    String counterpartName = outbound ? n.nomineeName() : n.nominatorName();
+                    boolean reciprocal = pairReciprocal && counterpartEmail.equalsIgnoreCase(otherEmail);
+                    return new NominationHistoryEntry(n.id(), n.quarter(), n.category(), counterpartName,
+                            reviewState.statusOf(n.id()),
+                            outbound ? NominationHistoryEntry.HistoryDirection.OUTBOUND
+                                    : NominationHistoryEntry.HistoryDirection.INBOUND,
+                            reciprocal);
+                })
                 .toList();
     }
 

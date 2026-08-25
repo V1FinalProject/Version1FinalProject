@@ -21,12 +21,18 @@ export interface FlagResult {
  * received before. `counterpartName` is the nominee they nominated on the
  * nominator's side, or the nominator who nominated them on the nominee's side.
  */
+/** Which way this history entry ran: this person nominating, or being nominated. */
+export type HistoryDirection = 'OUTBOUND' | 'INBOUND';
+
 export interface NominationHistoryEntry {
   id: number;
   quarter: string;
   category: string;
   counterpartName: string;
   status: ReviewStatus;
+  direction: HistoryDirection;
+  /** True when this pair have nominated each other at some point, any quarter. */
+  reciprocal: boolean;
 }
 
 /** Claude's verdict on a nomination. */

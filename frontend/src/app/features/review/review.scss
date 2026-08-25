@@ -930,6 +930,27 @@ $dashboard-width: 82rem;
   }
 }
 
+/**
+ * Same purple/blue coding as the nominator/nominee cards above
+ * (.detail__card--nominator / --nominee) so the two history columns read as
+ * "belonging to" the same two people at a glance.
+ */
+.detail__history-col {
+  padding: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+
+.detail__history-col--nominator {
+  background: #f3ecfb;
+  border-color: #dcc7f0;
+}
+
+.detail__history-col--nominee {
+  background: #eaf2fb;
+  border-color: #bcdcec;
+}
+
 .detail__history-heading {
   margin: 0 0 0.5rem;
   font-size: 0.8125rem;
@@ -952,7 +973,7 @@ $dashboard-width: 82rem;
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.625rem;
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   color: var(--text);
@@ -961,6 +982,11 @@ $dashboard-width: 82rem;
 .detail__history-quarter {
   font-weight: 600;
   color: var(--text-muted);
+}
+
+/** The subject's own name in a history row, when this pair nominated each other. */
+.detail__history-name--reciprocal {
+  color: var(--danger);
 }
 
 .orgchart__pair {

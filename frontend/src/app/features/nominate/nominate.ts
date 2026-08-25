@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -219,13 +220,28 @@ export class Nominate {
       this.receipt.set(receipt);
       this.form.reset();
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch {
-      this.submitError.set(
-        'We couldn’t submit your nomination. Please check your connection and try again.',
-      );
+    } catch (error) {
+      this.submitError.set(this.describeSubmitError(error));
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  /**
+   * The API's 4xx rejections (already nominated this quarter, unknown
+   * nominee, self-nomination, ...) carry a plain-text reason in the response
+   * body — worth showing verbatim so the block is specific, not a generic
+   * "something went wrong". Anything else (network failure, 5xx) falls back
+   * to the generic message, since there's nothing useful to relay.
+   */
+  private describeSubmitError(error: unknown): string {
+    if (error instanceof HttpErrorResponse && error.status >= 400 && error.status < 500) {
+      const message = error.error?.message;
+      if (typeof message === 'string' && message.trim()) {
+        return message;
+      }
+    }
+    return 'We couldn’t submit your nomination. Please check your connection and try again.';
   }
 
   private focusFirstInvalid(): void {

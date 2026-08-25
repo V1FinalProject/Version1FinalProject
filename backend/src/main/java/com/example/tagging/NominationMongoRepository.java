@@ -9,4 +9,7 @@ public interface NominationMongoRepository extends MongoRepository<Nomination, I
 
     /** Used to pick up id assignment where the collection left off, on startup. */
     Optional<Nomination> findFirstByOrderByIdDesc();
+
+    /** Backs the one-nomination-per-quarter rule in {@link NominationStore#add}. */
+    boolean existsByNominatorEmailIgnoreCaseAndQuarter(String nominatorEmail, String quarter);
 }

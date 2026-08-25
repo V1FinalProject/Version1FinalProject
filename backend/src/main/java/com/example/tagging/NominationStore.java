@@ -98,8 +98,21 @@ public class NominationStore {
         request.validate();
         requireNominatableAccount(request.nominatorEmail(), "Nominator");
         requireNominatableAccount(request.nomineeEmail(), "Nominee");
+        requireNoExistingNominationThisQuarter(request.nominatorEmail(), request.quarter());
         Nomination nomination = request.toNomination(nextId.getAndIncrement());
         return repository.insert(nomination);
+    }
+
+    /**
+     * One nomination per nominator per quarter. Checked before an id is
+     * claimed, same as {@link #requireNominatableAccount} - a resubmit gets a
+     * clear rejection instead of quietly creating a duplicate.
+     */
+    private void requireNoExistingNominationThisQuarter(String nominatorEmail, String quarter) {
+        if (repository.existsByNominatorEmailIgnoreCaseAndQuarter(nominatorEmail.trim(), quarter.trim())) {
+            throw badRequest("You've already submitted a nomination for " + quarter.trim()
+                    + ". Only one nomination per quarter is allowed.");
+        }
     }
 
     /**

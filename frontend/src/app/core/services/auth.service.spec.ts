@@ -1,31 +1,44 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { AuthService } from './auth.service';
-import { DEMO_USERS } from '../models/user.model';
+import { AppUser } from '../models/user.model';
 
 const SESSION_KEY = 'star-awards.session';
+const LOGIN_URL = '/api/auth/login';
+
+const sampleUser: AppUser = {
+  id: 'u-1',
+  name: 'Alice Byrne',
+  email: 'alice.byrne@version1.com',
+  practice: 'Engineering',
+  location: 'Dublin',
+  role: 'employee',
+};
 
 describe('AuthService', () => {
+  let httpMock: HttpTestingController;
+
+  /**
+   * Constructs AuthService fresh, after whatever localStorage state a test
+   * has set up — construction is what reads the stored session, so a
+   * service built too early (e.g. in a shared beforeEach) would miss it.
+   */
+  function createService(): AuthService {
+    return TestBed.inject(AuthService);
+  }
+
   beforeEach(() => {
     localStorage.clear();
-    vi.useFakeTimers();
+    TestBed.configureTestingModule({
+      providers: [AuthService, provideHttpClient(), provideHttpClientTesting()],
+    });
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  function createService(): AuthService {
-    return TestBed.configureTestingModule({}).inject(AuthService);
-  }
-
-  /** signIn awaits a simulated 400ms latency, so drive the fake clock forward. */
-  async function signIn(service: AuthService, email: string, password: string) {
-    const pending = service.signIn(email, password);
-    await vi.advanceTimersByTimeAsync(400);
-    return pending;
-  }
+  afterEach(() => httpMock.verify());
 
   it('starts signed out with a clean session', () => {
     const service = createService();
@@ -33,50 +46,64 @@ describe('AuthService', () => {
     expect(service.user()).toBeNull();
   });
 
-  it('signs in a known demo user and persists the session', async () => {
+  it('signs in against the real login endpoint and persists the session', async () => {
     const service = createService();
-    const employee = DEMO_USERS.find((u) => u.role === 'employee')!;
+    const promise = service.signIn(sampleUser.email, 'correct-password');
 
-    const error = await signIn(service, employee.email, 'anything');
+    const req = httpMock.expectOne(LOGIN_URL);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: sampleUser.email, password: 'correct-password' });
+    req.flush(sampleUser);
+
+    const error = await promise;
 
     expect(error).toBeNull();
     expect(service.isAuthenticated()).toBe(true);
-    expect(service.user()).toEqual(employee);
-    expect(JSON.parse(localStorage.getItem(SESSION_KEY)!)).toEqual(employee);
+    expect(service.user()).toEqual(sampleUser);
+    expect(JSON.parse(localStorage.getItem(SESSION_KEY)!)).toEqual(sampleUser);
   });
 
-  it('matches the email case-insensitively and trims whitespace', async () => {
+  it('trims whitespace from the email before sending it', async () => {
     const service = createService();
-    const user = DEMO_USERS[0];
+    const promise = service.signIn(`  ${sampleUser.email}  `, 'pw');
 
-    const error = await signIn(service, `  ${user.email.toUpperCase()}  `, 'pw');
+    const req = httpMock.expectOne(LOGIN_URL);
+    expect(req.request.body.email).toBe(sampleUser.email);
+    req.flush(sampleUser);
 
-    expect(error).toBeNull();
-    expect(service.user()).toEqual(user);
+    await promise;
   });
 
-  it('rejects an empty password without setting a user', async () => {
+  it('reports a 401 as incorrect email or password, without setting a user', async () => {
     const service = createService();
+    const promise = service.signIn(sampleUser.email, 'wrong-password');
 
-    const error = await signIn(service, DEMO_USERS[0].email, '   ');
+    httpMock.expectOne(LOGIN_URL).flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
-    expect(error).toBe('Please enter your password.');
+    const error = await promise;
+
+    expect(error).toBe('Incorrect email or password.');
     expect(service.isAuthenticated()).toBe(false);
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();
   });
 
-  it('rejects an unknown email address', async () => {
+  it('falls back to a connection error message on any other failure', async () => {
     const service = createService();
+    const promise = service.signIn(sampleUser.email, 'pw');
 
-    const error = await signIn(service, 'nobody@version1.com', 'pw');
+    httpMock.expectOne(LOGIN_URL).flush('boom', { status: 500, statusText: 'Server Error' });
 
-    expect(error).toContain('don’t recognise');
+    const error = await promise;
+
+    expect(error).toContain('Couldn’t reach the sign-in service');
     expect(service.isAuthenticated()).toBe(false);
   });
 
   it('signs out and clears the stored session', async () => {
     const service = createService();
-    await signIn(service, DEMO_USERS[0].email, 'pw');
+    const promise = service.signIn(sampleUser.email, 'pw');
+    httpMock.expectOne(LOGIN_URL).flush(sampleUser);
+    await promise;
 
     service.signOut();
 
@@ -86,21 +113,20 @@ describe('AuthService', () => {
   });
 
   it('restores an existing session from localStorage on construction', () => {
-    const coordinator = DEMO_USERS.find((u) => u.role === 'coordinator')!;
-    localStorage.setItem(SESSION_KEY, JSON.stringify(coordinator));
+    localStorage.setItem(SESSION_KEY, JSON.stringify(sampleUser));
 
-    const service = createService();
+    const restored = createService();
 
-    expect(service.isAuthenticated()).toBe(true);
-    expect(service.user()).toEqual(coordinator);
+    expect(restored.isAuthenticated()).toBe(true);
+    expect(restored.user()).toEqual(sampleUser);
   });
 
   it('starts signed out when the stored session is corrupt', () => {
     localStorage.setItem(SESSION_KEY, '{not valid json');
 
-    const service = createService();
+    const restored = createService();
 
-    expect(service.isAuthenticated()).toBe(false);
-    expect(service.user()).toBeNull();
+    expect(restored.isAuthenticated()).toBe(false);
+    expect(restored.user()).toBeNull();
   });
 });

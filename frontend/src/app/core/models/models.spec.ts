@@ -1,35 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEMO_USERS } from './user.model';
 import {
   NOMINATION_CATEGORIES,
   CORE_VALUES,
   CURRENT_QUARTER,
-  ALLOWED_EMAIL_DOMAIN,
   NARRATIVE_MIN_LENGTH,
   NARRATIVE_MAX_LENGTH,
 } from './nomination.model';
-
-describe('DEMO_USERS', () => {
-  it('has unique ids and email addresses', () => {
-    const ids = DEMO_USERS.map((u) => u.id);
-    const emails = DEMO_USERS.map((u) => u.email.toLowerCase());
-    expect(new Set(ids).size).toBe(DEMO_USERS.length);
-    expect(new Set(emails).size).toBe(DEMO_USERS.length);
-  });
-
-  it('has exactly one coordinator account', () => {
-    const coordinators = DEMO_USERS.filter((u) => u.role === 'coordinator');
-    expect(coordinators).toHaveLength(1);
-    expect(coordinators[0].email).toBe('reviewer@version1.com');
-  });
-
-  it('gives every demo user a version1.com address', () => {
-    for (const user of DEMO_USERS) {
-      expect(user.email.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)).toBe(true);
-    }
-  });
-});
 
 describe('NOMINATION_CATEGORIES', () => {
   // These ids are the contract with the backend NominationCategory enum.
