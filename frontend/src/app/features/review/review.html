@@ -176,7 +176,7 @@
         </thead>
         <tbody>
           @for (row of visibleRows(); track row.id) {
-            <tr class="row" [class.row--open]="expandedId() === row.id">
+            <tr class="row" [attr.id]="'nomination-' + row.id" [class.row--open]="expandedId() === row.id">
               <td class="col-id">{{ row.id }}</td>
 
               <td>
@@ -448,6 +448,40 @@
                       </div>
 
                       <p class="detail__email">{{ row.nominatorEmail }}</p>
+
+                      <div class="detail__form">
+                        <span class="detail__form-label">Form</span>
+                        <div
+                          class="detail__form-strip"
+                          role="list"
+                          [attr.aria-label]="row.nominatorName + '’s last nominations, most recent first'"
+                        >
+                          @for (entry of nominatorForm(row); track $index) {
+                            @if (entry) {
+                              <button
+                                type="button"
+                                role="listitem"
+                                class="form-icon"
+                                [class]="formIconClass(entry.status)"
+                                [title]="formTooltip(entry)"
+                                [attr.aria-label]="formTooltip(entry)"
+                                (click)="jumpToNomination(entry.id)"
+                              >
+                                @if (entry.status === 'ACCEPTED') {
+                                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path
+                                      d="M12 2.5l2.68 6.24 6.74.59-5.1 4.46 1.54 6.61L12 16.9l-5.86 3.5 1.54-6.61-5.1-4.46 6.74-.59z"
+                                    />
+                                  </svg>
+                                }
+                              </button>
+                            } @else {
+                              <span class="form-icon form-icon--empty" role="listitem" aria-hidden="true"></span>
+                            }
+                          }
+                        </div>
+                      </div>
+
                       <p class="detail__body detail__body--muted">
                         Submitted {{ row.timestamp | date: 'd MMM yyyy, HH:mm' }}
                         @if (row.practice) {

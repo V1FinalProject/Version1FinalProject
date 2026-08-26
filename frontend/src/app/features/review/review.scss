@@ -809,6 +809,80 @@ $dashboard-width: 82rem;
   color: var(--brand-navy-700);
 }
 
+/* Nominator's "form" strip — their last few outbound nominations, most
+   recent first. Gold star = accepted, red = rejected, grey = still pending;
+   dashed slots pad out nominators with fewer than FORM_SIZE past
+   nominations so every strip is the same width. Clicking an icon jumps the
+   reviewer to that nomination via jumpToNomination(). */
+.detail__form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+}
+
+.detail__form-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.detail__form-strip {
+  display: flex;
+  gap: 0.3125rem;
+}
+
+.form-icon {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.form-icon:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-icon svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+
+.form-icon--accepted {
+  background: #fdf1cf;
+  border-color: #eecf7d;
+}
+
+.form-icon--accepted svg {
+  fill: #b8860b;
+}
+
+.form-icon--rejected {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.form-icon--pending {
+  background: var(--surface-sunken);
+}
+
+.form-icon--empty {
+  background: transparent;
+  border: 1px dashed var(--border);
+  cursor: default;
+}
+
 /* Team size / company size / reciprocity / past nominations. Team/company
    size and past-nomination count show an em dash when there's no matching
    org_units row rather than a fabricated number. */
