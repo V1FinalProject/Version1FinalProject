@@ -69,11 +69,31 @@ export class Review {
   protected readonly filter = signal<ReviewFilter>('PENDING');
 
   /**
-   * Q1–Q3 are already closed out by the time Q4 reviewing starts, so they're
-   * hidden by default to keep the queue to what's actually being reviewed —
-   * this just reveals them again rather than re-fetching anything.
+   * Which round the table is scoped to — defaults to the open quarter so the
+   * queue starts on what's actually being reviewed, same as the old
+   * "hide closed quarters" behaviour, but as an explicit choice rather than
+   * an all-or-nothing toggle.
    */
-  protected readonly showAllQuarters = signal(false);
+  protected readonly selectedQuarter = signal<string>(CURRENT_QUARTER);
+
+  /** Every quarter present in the data, most recent first. */
+  protected readonly availableQuarters = computed(() => {
+    const quarters = new Set(this.rows().map((row) => row.quarter));
+    return [...quarters].sort((a, b) => quarterSortKey(b) - quarterSortKey(a));
+  });
+
+  /** Which office the table is narrowed to. Empty string = every office. */
+  protected readonly selectedOffice = signal('');
+
+  /** Every nominee work location present in the data, alphabetical. */
+  protected readonly availableOffices = computed(() => {
+    const offices = new Set(
+      this.rows()
+        .map((row) => row.nomineeProfile?.workLocation)
+        .filter((office): office is string => !!office),
+    );
+    return [...offices].sort((a, b) => a.localeCompare(b));
+  });
 
   /** Free-text search, matched against nominee and nominator name. */
   protected readonly searchQuery = signal('');
@@ -81,6 +101,9 @@ export class Review {
   /** Categories currently checked in the dropdown. Empty set = no category filter. */
   protected readonly selectedCategories = signal<ReadonlySet<string>>(new Set());
   protected readonly categoryMenuOpen = signal(false);
+
+  /** The "Export as..." menu beneath the table — CSV/PDF aren't wired up yet. */
+  protected readonly exportMenuOpen = signal(false);
 
   /** The one row whose detail panel is open, if any. */
   protected readonly expandedId = signal<number | null>(null);
@@ -103,18 +126,21 @@ export class Review {
   /** Rows with a write in flight — their buttons are disabled while it lands. */
   protected readonly busyIds = signal<ReadonlySet<number>>(new Set());
 
+  /**
+   * Rows with a Claude review specifically in flight — separate from
+   * `busyIds`, which covers every kind of write. The "Asking…" spinner in
+   * the Claude review column reads this one, not `busyIds`, so starring a
+   * nomination (also a `busyIds` write) doesn't make that column flash into
+   * a fake "reviewing" state.
+   */
+  protected readonly claudeBusyIds = signal<ReadonlySet<number>>(new Set());
+
   /** Progress of the "Review all pending" run, or null when it isn't running. */
   protected readonly bulkProgress = signal<{ done: number; total: number } | null>(null);
 
-  /** Rows for the current programme round, unless "show all quarters" is on. */
-  protected readonly quarterRows = computed(() => {
-    const rows = this.rows();
-    return this.showAllQuarters() ? rows : rows.filter((row) => row.quarter === this.quarter);
-  });
-
-  /** How many rows "show all quarters" would add back in — drives the toggle's label. */
-  protected readonly hiddenQuarterCount = computed(
-    () => this.rows().length - this.quarterRows().length,
+  /** Rows for the selected quarter. */
+  protected readonly quarterRows = computed(() =>
+    this.rows().filter((row) => row.quarter === this.selectedQuarter()),
   );
 
   protected readonly counts = computed(() => {
@@ -137,6 +163,7 @@ export class Review {
   protected readonly visibleRows = computed(() => {
     const filter = this.filter();
     const categories = this.selectedCategories();
+    const office = this.selectedOffice();
     const query = this.searchQuery().trim().toLowerCase();
     let rows = this.quarterRows();
 
@@ -148,6 +175,10 @@ export class Review {
 
     if (categories.size > 0) {
       rows = rows.filter((row) => categories.has(row.category));
+    }
+
+    if (office) {
+      rows = rows.filter((row) => row.nomineeProfile?.workLocation === office);
     }
 
     if (query) {
@@ -188,6 +219,10 @@ export class Review {
     return this.busyIds().has(id);
   }
 
+  protected isClaudeBusy(id: number): boolean {
+    return this.claudeBusyIds().has(id);
+  }
+
   /**
    * Once a quarter's reviewing window has passed, its rows are read-only —
    * Review/Accept/Reject are greyed out so a closed quarter can't quietly
@@ -223,15 +258,30 @@ export class Review {
     this.categoryMenuOpen.update((open) => !open);
   }
 
-  /** Closes the category dropdown when clicking anywhere outside it. */
+  /** Closes the category and export dropdowns when clicking anywhere outside them. */
   @HostListener('document:click', ['$event'])
   protected onDocumentClick(event: MouseEvent): void {
-    if (!this.categoryMenuOpen()) {
-      return;
-    }
-    if (!(event.target as HTMLElement).closest('.category-filter')) {
+    const target = event.target as HTMLElement;
+
+    if (this.categoryMenuOpen() && !target.closest('.category-filter')) {
       this.categoryMenuOpen.set(false);
     }
+    if (this.exportMenuOpen() && !target.closest('.export-menu')) {
+      this.exportMenuOpen.set(false);
+    }
+  }
+
+  protected toggleExportMenu(): void {
+    this.exportMenuOpen.update((open) => !open);
+  }
+
+  /**
+   * Placeholder — CSV/PDF export isn't wired up yet, so this just closes the
+   * menu. Kept as a real handler (rather than a dead link) so the button
+   * still behaves like a button.
+   */
+  protected exportAs(_format: 'CSV' | 'PDF'): void {
+    this.exportMenuOpen.set(false);
   }
 
   /** Colour class for a flag chip, so each flag type reads as its own colour. */
@@ -298,13 +348,18 @@ export class Review {
 
   /**
    * Jumps to another nomination from the form strip or history list. The
-   * target might be hidden by the current tab, quarter toggle or search, so
-   * this clears all three before expanding and scrolling to it rather than
-   * leaving the reviewer looking at an unchanged table.
+   * target might be hidden by the current tab, quarter, office filter or
+   * search, so this clears all of them — switching to the target's own
+   * quarter — before expanding and scrolling to it rather than leaving the
+   * reviewer looking at an unchanged table.
    */
   protected jumpToNomination(id: number): void {
+    const target = this.rows().find((row) => row.id === id);
+    if (target) {
+      this.selectedQuarter.set(target.quarter);
+    }
     this.filter.set('ALL');
-    this.showAllQuarters.set(true);
+    this.selectedOffice.set('');
     this.searchQuery.set('');
     this.clearCategories();
     this.categoryMenuOpen.set(false);
@@ -344,7 +399,7 @@ export class Review {
   }
 
   protected async runClaudeReview(row: NominationView): Promise<void> {
-    await this.write(row.id, () => this.reviews.requestClaudeReview(row.id));
+    await this.claudeReview(row);
   }
 
   /**
@@ -367,7 +422,7 @@ export class Review {
 
     try {
       for (const [index, row] of queue.entries()) {
-        if (!(await this.write(row.id, () => this.reviews.requestClaudeReview(row.id)))) {
+        if (!(await this.claudeReview(row))) {
           failed++;
         }
         this.bulkProgress.set({ done: index + 1, total: queue.length });
@@ -407,6 +462,21 @@ export class Review {
     }
   }
 
+  /**
+   * The single-nomination Claude call, shared by the per-row "Review" button
+   * and the bulk "Review all pending" run — marks `claudeBusyIds` around the
+   * same `write()` used everywhere else, so the row's other buttons still
+   * disable correctly but only *this* column shows "Asking…".
+   */
+  private async claudeReview(row: NominationView): Promise<boolean> {
+    this.setClaudeBusy(row.id, true);
+    try {
+      return await this.write(row.id, () => this.reviews.requestClaudeReview(row.id));
+    } finally {
+      this.setClaudeBusy(row.id, false);
+    }
+  }
+
   private setBusy(id: number, busy: boolean): void {
     this.busyIds.update((current) => {
       const next = new Set(current);
@@ -418,4 +488,22 @@ export class Review {
       return next;
     });
   }
+
+  private setClaudeBusy(id: number, busy: boolean): void {
+    this.claudeBusyIds.update((current) => {
+      const next = new Set(current);
+      if (busy) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  }
+}
+
+/** Sort key for a "Q<1-4> <year>" label — higher sorts later, e.g. "Q1 2027" > "Q4 2026". */
+function quarterSortKey(label: string): number {
+  const match = /^Q([1-4]) (\d{4})$/.exec(label);
+  return match ? Number(match[2]) * 4 + Number(match[1]) : 0;
 }

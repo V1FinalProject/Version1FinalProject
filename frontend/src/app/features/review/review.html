@@ -2,8 +2,8 @@
   <div class="banner__inner">
     <h1 class="banner__title">Star Award Reviews &ndash; {{ quarter }}</h1>
     <p class="banner__tagline">
-      The flags and Claude&rsquo;s verdict are advisory &mdash; accepting and rejecting is your
-      call, and you can take a decision back.
+      The flags are advisory &mdash; accepting and rejecting is your call, and you can take a
+      decision back.
     </p>
   </div>
 </header>
@@ -60,37 +60,9 @@
           </button>
         }
       </div>
-
-      <div class="toolbar__actions">
-        @if (unreviewed().length > 0) {
-          <button
-            type="button"
-            class="btn btn--secondary btn--compact"
-            [disabled]="bulkProgress() !== null"
-            (click)="runAllClaudeReviews()"
-          >
-            @if (bulkProgress(); as progress) {
-              <span class="spinner" aria-hidden="true"></span>
-              Reviewing {{ progress.done }} / {{ progress.total }}
-            } @else {
-              Ask Claude to review {{ unreviewed().length }} unreviewed
-            }
-          </button>
-        }
-
-        @if (!showAllQuarters() && hiddenQuarterCount() > 0) {
-          <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(true)">
-            Show {{ hiddenQuarterCount() }} from closed quarters
-          </button>
-        } @else if (showAllQuarters()) {
-          <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(false)">
-            Show {{ quarter }} only
-          </button>
-        }
-      </div>
     </div>
 
-    <div class="toolbar__row toolbar__row--filters">
+    <div class="toolbar__row">
       <div class="search">
         <svg class="search__icon" viewBox="0 0 20 20" aria-hidden="true">
           <circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -149,6 +121,29 @@
           </div>
         }
       </div>
+
+      <select
+        class="select-filter"
+        aria-label="Filter by office"
+        [value]="selectedOffice()"
+        (change)="selectedOffice.set($any($event.target).value)"
+      >
+        <option value="">All offices</option>
+        @for (office of availableOffices(); track office) {
+          <option [value]="office">{{ office }}</option>
+        }
+      </select>
+
+      <select
+        class="select-filter"
+        aria-label="Filter by quarter"
+        [value]="selectedQuarter()"
+        (change)="selectedQuarter.set($any($event.target).value)"
+      >
+        @for (q of availableQuarters(); track q) {
+          <option [value]="q">{{ q }}</option>
+        }
+      </select>
     </div>
   </div>
 
@@ -159,9 +154,7 @@
   } @else {
     <div class="table-wrap">
       <table class="table">
-        <caption class="visually-hidden">
-          Nominations with their flags, Claude&rsquo;s review and your decision
-        </caption>
+        <caption class="visually-hidden"> Nominations with their flags and your decision </caption>
         <thead>
           <tr>
             <th scope="col" class="col-id">#</th>
@@ -169,24 +162,47 @@
             <th scope="col">Nominator</th>
             <th scope="col">Category</th>
             <th scope="col">Flags</th>
-            <th scope="col">Claude review</th>
             <th scope="col">Status</th>
             <th scope="col" class="col-actions">Decision</th>
           </tr>
         </thead>
         <tbody>
           @for (row of visibleRows(); track row.id) {
-            <tr class="row" [attr.id]="'nomination-' + row.id" [class.row--open]="expandedId() === row.id">
+            <tr
+              class="row row--clickable"
+              [attr.id]="'nomination-' + row.id"
+              [class.row--open]="expandedId() === row.id"
+              [attr.aria-expanded]="expandedId() === row.id"
+              (click)="toggleExpanded(row.id)"
+            >
               <td class="col-id">{{ row.id }}</td>
 
               <td>
-                <button type="button" class="link" (click)="toggleExpanded(row.id)">
+                <span class="link">
                   {{ row.nomineeName }}
                   <span class="link__chevron" aria-hidden="true">
                     {{ expandedId() === row.id ? '▾' : '▸' }}
                   </span>
-                </button>
-                <span class="cell-sub">{{ row.nomineeEmail }}</span>
+                </span>
+                <a
+                  class="cell-sub cell-email"
+                  [href]="'mailto:' + row.nomineeEmail"
+                  [attr.aria-label]="'Email ' + row.nomineeName"
+                  (click)="$event.stopPropagation()"
+                >
+                  <svg class="cell-email__icon" viewBox="0 0 20 20" aria-hidden="true">
+                    <rect x="2" y="4.5" width="16" height="11" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4" />
+                    <path
+                      d="M3 6l7 5 7-5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  {{ row.nomineeEmail }}
+                </a>
               </td>
 
               <td>
@@ -219,31 +235,6 @@
               </td>
 
               <td>
-                @if (row.claudeReview; as review) {
-                  <div class="verdicts">
-                    <span class="verdict" [class.verdict--bad]="!review.isValidNomination">
-                      {{ review.isValidNomination ? '✓' : '✗' }} Genuine
-                    </span>
-                    <span class="verdict" [class.verdict--bad]="!review.isVersion1Values">
-                      {{ review.isVersion1Values ? '✓' : '✗' }} V1 values
-                    </span>
-                  </div>
-                } @else if (isBusy(row.id)) {
-                  <span class="cell-none"><span class="spinner" aria-hidden="true"></span> Asking&hellip;</span>
-                } @else {
-                  <button
-                    type="button"
-                    class="btn-mini"
-                    [disabled]="isClosedQuarter(row)"
-                    [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
-                    (click)="runClaudeReview(row)"
-                  >
-                    Review
-                  </button>
-                }
-              </td>
-
-              <td>
                 <span class="status" [class]="'status--' + row.status.toLowerCase()">
                   {{ row.status }}
                 </span>
@@ -257,7 +248,7 @@
                     [class.btn-mini--on]="row.status === 'ACCEPTED'"
                     [disabled]="isBusy(row.id) || isClosedQuarter(row)"
                     [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
-                    (click)="decide(row, 'ACCEPTED')"
+                    (click)="$event.stopPropagation(); decide(row, 'ACCEPTED')"
                   >
                     {{ row.status === 'ACCEPTED' ? 'Pending' : 'Accept' }}
                   </button>
@@ -267,7 +258,7 @@
                     [class.btn-mini--on]="row.status === 'REJECTED'"
                     [disabled]="isBusy(row.id) || isClosedQuarter(row)"
                     [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
-                    (click)="decide(row, 'REJECTED')"
+                    (click)="$event.stopPropagation(); decide(row, 'REJECTED')"
                   >
                     {{ row.status === 'REJECTED' ? 'Pending' : 'Reject' }}
                   </button>
@@ -282,7 +273,7 @@
                       row.nomineeName +
                       ' to your shortlist'
                     "
-                    (click)="toggleFavourite(row)"
+                    (click)="$event.stopPropagation(); toggleFavourite(row)"
                   >
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path
@@ -299,7 +290,7 @@
 
             @if (expandedId() === row.id) {
               <tr class="detail-row">
-                <td colspan="8">
+                <td colspan="7">
                   <div class="detail">
                     <div class="detail__topbar">
                       <p class="detail__voucher-note">
@@ -615,4 +606,23 @@
       </table>
     </div>
   }
+
+  <div class="export-menu">
+    <button
+      type="button"
+      class="btn btn--secondary btn--compact"
+      [attr.aria-expanded]="exportMenuOpen()"
+      (click)="toggleExportMenu()"
+    >
+      Export as&hellip;
+      <span class="link__chevron" aria-hidden="true">{{ exportMenuOpen() ? '▾' : '▸' }}</span>
+    </button>
+
+    @if (exportMenuOpen()) {
+      <div class="export-menu__panel" role="group" aria-label="Export the current view">
+        <button type="button" class="export-menu__option" (click)="exportAs('CSV')">Export as CSV</button>
+        <button type="button" class="export-menu__option" (click)="exportAs('PDF')">Export as PDF</button>
+      </div>
+    }
+  </div>
 </div>
