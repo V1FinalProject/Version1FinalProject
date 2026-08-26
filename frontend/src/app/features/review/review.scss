@@ -149,26 +149,7 @@ $dashboard-width: 82rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
-}
-
-.toolbar__row--filters {
-  justify-content: flex-start;
-}
-
-/**
- * The "Ask Claude" and "closed quarters" buttons each appear/disappear on
- * their own condition. Grouping them here with a fixed internal gap, pinned
- * to the right via margin-left: auto, means one showing up or vanishing only
- * ever shifts the other by its own width — the tabs on the left never move.
- */
-.toolbar__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  margin-left: auto;
 }
 
 .tabs {
@@ -347,6 +328,28 @@ $dashboard-width: 82rem;
   text-decoration: underline;
 }
 
+/* Office / quarter filters — plain native selects, sized to match the
+   category dropdown's toggle rather than the larger form `.control`. */
+.select-filter {
+  appearance: none;
+  padding: 0.4375rem 2.25rem 0.4375rem 0.875rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%235b6a83' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.select-filter:hover {
+  color: var(--brand-navy-800);
+}
+
 /* Table ------------------------------------------------------------------- */
 
 .table-wrap {
@@ -390,6 +393,14 @@ $dashboard-width: 82rem;
 .row--open td {
   background: var(--surface-muted);
   border-bottom-color: transparent;
+}
+
+/* The whole row expands the nomination now, not just the nominee name —
+   still exclude buttons and the mailto link inside it, via their own
+   stopPropagation, so a click meant for one of those doesn't also toggle
+   the row. */
+.row--clickable {
+  cursor: pointer;
 }
 
 .col-id {
@@ -456,29 +467,41 @@ $dashboard-width: 82rem;
   opacity: 0.5;
 }
 
-/* Nominee name doubles as the expand toggle. */
+/* Nominee name — styled like the old expand button, but the whole row
+   carries the click now (see .row--clickable), so this is just a span. */
 
 .link {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0;
-  font: inherit;
   font-weight: 600;
   color: var(--brand-navy-800);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-}
-
-.link:hover {
-  text-decoration: underline;
 }
 
 .link__chevron {
   font-size: 0.75rem;
   color: var(--text-subtle);
+}
+
+/* Nominee email as a mailto link — its own click target inside the
+   clickable row, so it stops propagation rather than also expanding it. */
+.cell-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-subtle);
+  text-decoration: none;
+}
+
+.cell-email:hover {
+  color: var(--brand-navy-700);
+  text-decoration: underline;
+}
+
+.cell-email__icon {
+  width: 0.8125rem;
+  height: 0.8125rem;
+  flex: 0 0 auto;
 }
 
 /* Chips, flags and verdicts ----------------------------------------------- */
@@ -548,32 +571,6 @@ $dashboard-width: 82rem;
   flex-wrap: wrap;
   gap: 0.25rem;
   max-width: 13rem;
-}
-
-.verdicts {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.verdict {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.1875rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--success);
-  background: var(--success-bg);
-  border: 1px solid var(--success-border);
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.verdict--bad {
-  color: var(--danger);
-  background: var(--danger-bg);
-  border-color: var(--danger-border);
 }
 
 /* Status pill ------------------------------------------------------------- */
@@ -1037,6 +1034,47 @@ $dashboard-width: 82rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-subtle);
+}
+
+/* Export button ------------------------------------------------------------ */
+
+/* CSV/PDF aren't wired up yet (see Review.exportAs) — this is the same
+   toggle-button-plus-panel pattern as .category-filter, reused so it doesn't
+   read as a different kind of control. */
+.export-menu {
+  position: relative;
+  margin-top: 1rem;
+}
+
+.export-menu__panel {
+  position: absolute;
+  z-index: 10;
+  bottom: calc(100% + 0.375rem);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  padding: 0.375rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md, var(--shadow-sm));
+}
+
+.export-menu__option {
+  padding: 0.5rem 0.625rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+}
+
+.export-menu__option:hover {
+  background: var(--surface-muted);
 }
 
 @media (max-width: 40rem) {
