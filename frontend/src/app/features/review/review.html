@@ -159,6 +159,7 @@
           <tr>
             <th scope="col" class="col-id">#</th>
             <th scope="col">Nominee</th>
+            <th scope="col">Office</th>
             <th scope="col">Nominator</th>
             <th scope="col">Category</th>
             <th scope="col">Flags</th>
@@ -204,6 +205,8 @@
                 </a>
               </td>
 
+              <td>{{ row.nomineeProfile?.workLocation ?? '—' }}</td>
+
               <td>
                 {{ row.nominatorName }}
                 <span class="cell-sub">
@@ -241,16 +244,20 @@
 
               <td class="col-actions">
                 <div class="actions">
-                  <button
-                    type="button"
-                    class="btn-mini btn-mini--accept"
-                    [class.btn-mini--on]="row.status === 'ACCEPTED'"
-                    [disabled]="isBusy(row.id) || isClosedQuarter(row)"
-                    [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
-                    (click)="$event.stopPropagation(); decide(row, 'ACCEPTED')"
-                  >
-                    {{ row.status === 'ACCEPTED' ? 'Pending' : 'Accept' }}
-                  </button>
+                  @if (row.status === 'ACCEPTED') {
+                    <!-- Accepting only happens from the expanded nomination now, to avoid an
+                         accidental click here — but the way back to Pending stays, so a wrong
+                         accept can still be undone without opening the row. -->
+                    <button
+                      type="button"
+                      class="btn-mini btn-mini--accept btn-mini--on"
+                      [disabled]="isBusy(row.id) || isClosedQuarter(row)"
+                      [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
+                      (click)="$event.stopPropagation(); decide(row, 'ACCEPTED')"
+                    >
+                      Pending
+                    </button>
+                  }
                   <button
                     type="button"
                     class="btn-mini btn-mini--reject"
@@ -289,7 +296,7 @@
 
             @if (expandedId() === row.id) {
               <tr class="detail-row">
-                <td colspan="7">
+                <td colspan="8">
                   <div class="detail">
                     <div class="detail__topbar">
                       <p class="detail__voucher-note">
@@ -336,7 +343,20 @@
                         </div>
                       </div>
 
-                      <p class="detail__email">{{ row.nomineeEmail }}</p>
+                      <a class="detail__email" [href]="'mailto:' + row.nomineeEmail" [attr.aria-label]="'Email ' + row.nomineeName">
+                        <svg class="cell-email__icon" viewBox="0 0 20 20" aria-hidden="true">
+                          <rect x="2" y="4.5" width="16" height="11" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4" />
+                          <path
+                            d="M3 6l7 5 7-5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.4"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                        {{ row.nomineeEmail }}
+                      </a>
 
                       <div class="detail__stat-grid">
                         <div class="detail__stat">
@@ -404,6 +424,31 @@
                           </div>
                         </div>
                       </div>
+
+                      <!-- Accepting lives here now, not on the collapsed row — a deliberate
+                           second step so it isn't one accidental click from the table. -->
+                      <div class="detail__card-actions">
+                        <button
+                          type="button"
+                          class="btn-mini btn-mini--accept"
+                          [class.btn-mini--on]="row.status === 'ACCEPTED'"
+                          [disabled]="isBusy(row.id) || isClosedQuarter(row)"
+                          [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
+                          (click)="decide(row, 'ACCEPTED')"
+                        >
+                          {{ row.status === 'ACCEPTED' ? 'Pending' : 'Accept' }}
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-mini btn-mini--reject"
+                          [class.btn-mini--on]="row.status === 'REJECTED'"
+                          [disabled]="isBusy(row.id) || isClosedQuarter(row)"
+                          [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
+                          (click)="decide(row, 'REJECTED')"
+                        >
+                          {{ row.status === 'REJECTED' ? 'Pending' : 'Reject' }}
+                        </button>
+                      </div>
                     </div>
 
                     <div class="detail__card detail__card--nominator">
@@ -437,7 +482,20 @@
                         </div>
                       </div>
 
-                      <p class="detail__email">{{ row.nominatorEmail }}</p>
+                      <a class="detail__email" [href]="'mailto:' + row.nominatorEmail" [attr.aria-label]="'Email ' + row.nominatorName">
+                        <svg class="cell-email__icon" viewBox="0 0 20 20" aria-hidden="true">
+                          <rect x="2" y="4.5" width="16" height="11" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4" />
+                          <path
+                            d="M3 6l7 5 7-5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.4"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                        {{ row.nominatorEmail }}
+                      </a>
                       <p class="detail__body detail__body--muted">
                         Submitted {{ row.timestamp | date: 'd MMM yyyy, HH:mm' }}
                         @if (row.practice) {
