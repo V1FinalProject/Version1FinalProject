@@ -61,21 +61,33 @@
         }
       </div>
 
-      @if (unreviewed().length > 0) {
-        <button
-          type="button"
-          class="btn btn--secondary btn--compact"
-          [disabled]="bulkProgress() !== null"
-          (click)="runAllClaudeReviews()"
-        >
-          @if (bulkProgress(); as progress) {
-            <span class="spinner" aria-hidden="true"></span>
-            Reviewing {{ progress.done }} / {{ progress.total }}
-          } @else {
-            Ask Claude to review {{ unreviewed().length }} unreviewed
-          }
-        </button>
-      }
+      <div class="toolbar__actions">
+        @if (unreviewed().length > 0) {
+          <button
+            type="button"
+            class="btn btn--secondary btn--compact"
+            [disabled]="bulkProgress() !== null"
+            (click)="runAllClaudeReviews()"
+          >
+            @if (bulkProgress(); as progress) {
+              <span class="spinner" aria-hidden="true"></span>
+              Reviewing {{ progress.done }} / {{ progress.total }}
+            } @else {
+              Ask Claude to review {{ unreviewed().length }} unreviewed
+            }
+          </button>
+        }
+
+        @if (!showAllQuarters() && hiddenQuarterCount() > 0) {
+          <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(true)">
+            Show {{ hiddenQuarterCount() }} from closed quarters
+          </button>
+        } @else if (showAllQuarters()) {
+          <button type="button" class="btn btn--secondary btn--compact" (click)="showAllQuarters.set(false)">
+            Show {{ quarter }} only
+          </button>
+        }
+      </div>
     </div>
 
     <div class="toolbar__row toolbar__row--filters">
@@ -179,7 +191,12 @@
 
               <td>
                 {{ row.nominatorName }}
-                <span class="cell-sub">{{ row.timestamp | date: 'd MMM yyyy' }}</span>
+                <span class="cell-sub">
+                  {{ row.timestamp | date: 'd MMM yyyy' }}
+                  @if (isClosedQuarter(row)) {
+                    &middot; <span class="chip chip--closed" [title]="closedQuarterTitle">{{ row.quarter }} &middot; closed</span>
+                  }
+                </span>
               </td>
 
               <td><span class="chip">{{ row.category }}</span></td>
@@ -214,7 +231,13 @@
                 } @else if (isBusy(row.id)) {
                   <span class="cell-none"><span class="spinner" aria-hidden="true"></span> Asking&hellip;</span>
                 } @else {
-                  <button type="button" class="btn-mini" (click)="runClaudeReview(row)">
+                  <button
+                    type="button"
+                    class="btn-mini"
+                    [disabled]="isClosedQuarter(row)"
+                    [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
+                    (click)="runClaudeReview(row)"
+                  >
                     Review
                   </button>
                 }
@@ -232,7 +255,8 @@
                     type="button"
                     class="btn-mini btn-mini--accept"
                     [class.btn-mini--on]="row.status === 'ACCEPTED'"
-                    [disabled]="isBusy(row.id)"
+                    [disabled]="isBusy(row.id) || isClosedQuarter(row)"
+                    [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
                     (click)="decide(row, 'ACCEPTED')"
                   >
                     {{ row.status === 'ACCEPTED' ? 'Pending' : 'Accept' }}
@@ -241,7 +265,8 @@
                     type="button"
                     class="btn-mini btn-mini--reject"
                     [class.btn-mini--on]="row.status === 'REJECTED'"
-                    [disabled]="isBusy(row.id)"
+                    [disabled]="isBusy(row.id) || isClosedQuarter(row)"
+                    [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
                     (click)="decide(row, 'REJECTED')"
                   >
                     {{ row.status === 'REJECTED' ? 'Pending' : 'Reject' }}
@@ -323,25 +348,33 @@
 
                       <p class="detail__email">{{ row.nomineeEmail }}</p>
 
-                      <div
-                        class="detail__stat-grid"
-                        title="Not tracked by the app yet — shown as a placeholder"
-                      >
+                      <div class="detail__stat-grid">
                         <div class="detail__stat">
                           <span class="detail__stat-label">Team size</span>
-                          <span class="detail__stat-value">—</span>
+                          <span class="detail__stat-value">{{
+                            row.nomineeProfile?.teamSize ?? '—'
+                          }}</span>
                         </div>
                         <div class="detail__stat">
                           <span class="detail__stat-label">Company size</span>
-                          <span class="detail__stat-value">—</span>
+                          <span class="detail__stat-value">{{
+                            row.nomineeProfile?.companySize ?? '—'
+                          }}</span>
                         </div>
-                        <div class="detail__stat">
+                        <div
+                          class="detail__stat"
+                          title="How much of this nominee's small reciprocal circle nominates back"
+                        >
                           <span class="detail__stat-label">Reciprocity</span>
-                          <span class="detail__stat-value">—</span>
+                          <span
+                            class="detail__stat-value"
+                            [class]="reciprocityClass(row.reciprocityPercent)"
+                            >{{ row.reciprocityPercent }}%</span
+                          >
                         </div>
                         <div class="detail__stat">
                           <span class="detail__stat-label">Past nominations</span>
-                          <span class="detail__stat-value">—</span>
+                          <span class="detail__stat-value">{{ row.pastNominationsCount }}</span>
                         </div>
                       </div>
 
@@ -472,10 +505,70 @@
                       </button>
 
                       @if (historyOpen()) {
-                        <div class="detail__subpanel">
-                          <p class="detail__body detail__body--muted">
-                            Nomination history per person isn&rsquo;t tracked yet.
-                          </p>
+                        <div class="detail__subpanel detail__history">
+                          <div class="detail__history-col detail__history-col--nominator">
+                            <h4 class="detail__history-heading">
+                              {{ row.nominatorName }}&rsquo;s past nominations
+                            </h4>
+                            @if (row.nominatorHistory.length === 0) {
+                              <p class="detail__body detail__body--muted">No previous nominations.</p>
+                            } @else {
+                              <ul class="detail__history-list">
+                                @for (entry of row.nominatorHistory; track entry.id) {
+                                  <li class="detail__history-entry">
+                                    <span class="detail__history-quarter">{{ entry.quarter }}</span>
+                                    <span
+                                      ><strong [class.detail__history-name--reciprocal]="entry.reciprocal">{{
+                                        row.nominatorName
+                                      }}</strong
+                                      >{{ ' ' }}<em>{{
+                                        entry.direction === 'OUTBOUND' ? 'nominated' : 'nominated by'
+                                      }}</em
+                                      >{{ ' ' }}<strong [class.detail__history-name--reciprocal]="entry.reciprocal">{{
+                                        entry.counterpartName
+                                      }}</strong
+                                      >{{ ' for ' + entry.category }}</span
+                                    >
+                                    <span class="status" [class]="statusClass(entry.status)">{{
+                                      entry.status
+                                    }}</span>
+                                  </li>
+                                }
+                              </ul>
+                            }
+                          </div>
+
+                          <div class="detail__history-col detail__history-col--nominee">
+                            <h4 class="detail__history-heading">
+                              {{ row.nomineeName }}&rsquo;s past nominations
+                            </h4>
+                            @if (row.nomineeHistory.length === 0) {
+                              <p class="detail__body detail__body--muted">No previous nominations.</p>
+                            } @else {
+                              <ul class="detail__history-list">
+                                @for (entry of row.nomineeHistory; track entry.id) {
+                                  <li class="detail__history-entry">
+                                    <span class="detail__history-quarter">{{ entry.quarter }}</span>
+                                    <span
+                                      ><strong [class.detail__history-name--reciprocal]="entry.reciprocal">{{
+                                        row.nomineeName
+                                      }}</strong
+                                      >{{ ' ' }}<em>{{
+                                        entry.direction === 'OUTBOUND' ? 'nominated' : 'nominated by'
+                                      }}</em
+                                      >{{ ' ' }}<strong [class.detail__history-name--reciprocal]="entry.reciprocal">{{
+                                        entry.counterpartName
+                                      }}</strong
+                                      >{{ ' for ' + entry.category }}</span
+                                    >
+                                    <span class="status" [class]="statusClass(entry.status)">{{
+                                      entry.status
+                                    }}</span>
+                                  </li>
+                                }
+                              </ul>
+                            }
+                          </div>
                         </div>
                       }
                     </div>

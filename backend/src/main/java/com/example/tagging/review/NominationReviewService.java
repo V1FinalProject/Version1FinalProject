@@ -1,5 +1,7 @@
 package com.example.tagging.review;
 
+import com.example.tagging.nomination.NominationHistoryEntry;
+import com.example.tagging.org.OrgSizeLookup;
 import com.example.tagging.claude.ClaudeNominationReviewer;
 import com.example.tagging.claude.ClaudeReviewResult;
 import com.example.tagging.nomination.Nomination;
@@ -38,14 +40,19 @@ public class NominationReviewService {
     private final TaggingService taggingService;
     private final ClaudeNominationReviewer claudeReviewer;
     private final UserAccountRepository users;
+    private final OrgSizeLookup orgSizes;
+    private final ReciprocityService reciprocity;
 
     public NominationReviewService(NominationStore nominations, ReviewStateStore reviewState,
-            TaggingService taggingService, ClaudeNominationReviewer claudeReviewer, UserAccountRepository users) {
+            TaggingService taggingService, ClaudeNominationReviewer claudeReviewer, UserAccountRepository users,
+            OrgSizeLookup orgSizes, ReciprocityService reciprocity) {
         this.nominations = nominations;
         this.reviewState = reviewState;
         this.taggingService = taggingService;
         this.claudeReviewer = claudeReviewer;
         this.users = users;
+        this.orgSizes = orgSizes;
+        this.reciprocity = reciprocity;
     }
 
     /** Every nomination, newest first, with its flags and current review state. */
@@ -143,16 +150,52 @@ public class NominationReviewService {
                 nomination.justification(),
                 nomination.practice(),
                 nomination.location(),
+                nomination.quarter(),
                 taggingService.evaluate(nomination, allNominations),
                 reviewState.claudeReviewOf(nomination.id()).orElse(null),
                 reviewState.statusOf(nomination.id()),
                 reviewState.isFavourite(nomination.id()),
                 profileOf(nomination.nominatorEmail()),
-                profileOf(nomination.nomineeEmail()));
+                profileOf(nomination.nomineeEmail()),
+                reciprocity.reciprocityPercent(nomination, allNominations),
+                reciprocity.pastNominationsCount(nomination, allNominations),
+                historyEntries(nomination.nominatorEmail(), nomination.nomineeEmail(), nomination.id(),
+                        allNominations),
+                historyEntries(nomination.nomineeEmail(), nomination.nominatorEmail(), nomination.id(),
+                        allNominations));
     }
 
     private PersonSummary profileOf(String email) {
-        return users.findByEmailAddressIgnoreCase(email).map(PersonSummary::from).orElse(null);
+        return users.findByEmailAddressIgnoreCase(email).map(account -> PersonSummary.from(account, orgSizes)).orElse(null);
+    }
+
+    /**
+     * Builds one person's full nomination history - both the times they
+     * nominated someone and the times they were nominated. {@code otherEmail}
+     * is the other person in the nomination currently being reviewed (the
+     * nominee, when {@code personEmail} is the nominator, and vice versa) -
+     * an entry is only flagged {@code reciprocal} when it's specifically
+     * between this pair and they've nominated each other back at some point,
+     * not merely because {@code personEmail} has a reciprocal history with
+     * someone else entirely. See {@link NominationHistoryEntry}'s Javadoc.
+     */
+    private List<NominationHistoryEntry> historyEntries(String personEmail, String otherEmail, int excludeId,
+            List<Nomination> allNominations) {
+        boolean pairReciprocal = reciprocity.reciprocalPair(personEmail, otherEmail, allNominations);
+
+        return reciprocity.personHistory(personEmail, excludeId, allNominations).stream()
+                .map(n -> {
+                    boolean outbound = n.nominatorEmail().equalsIgnoreCase(personEmail);
+                    String counterpartEmail = outbound ? n.nomineeEmail() : n.nominatorEmail();
+                    String counterpartName = outbound ? n.nomineeName() : n.nominatorName();
+                    boolean reciprocal = pairReciprocal && counterpartEmail.equalsIgnoreCase(otherEmail);
+                    return new NominationHistoryEntry(n.id(), n.quarter(), n.category(), counterpartName,
+                            reviewState.statusOf(n.id()),
+                            outbound ? NominationHistoryEntry.HistoryDirection.OUTBOUND
+                                    : NominationHistoryEntry.HistoryDirection.INBOUND,
+                            reciprocal);
+                })
+                .toList();
     }
 
     private Nomination require(int id) {

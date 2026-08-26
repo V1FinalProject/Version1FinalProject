@@ -55,6 +55,7 @@ export class Review {
   private readonly reviews = inject(ReviewService);
 
   protected readonly quarter = CURRENT_QUARTER;
+  protected readonly closedQuarterTitle = 'This quarter is closed — no further changes.';
   protected readonly tabs = FILTER_TABS;
   /** The five fixed nomination categories, for the filter dropdown. */
   protected readonly categoryOptions = NOMINATION_CATEGORIES;
@@ -63,6 +64,13 @@ export class Review {
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly filter = signal<ReviewFilter>('PENDING');
+
+  /**
+   * Q1–Q3 are already closed out by the time Q4 reviewing starts, so they're
+   * hidden by default to keep the queue to what's actually being reviewed —
+   * this just reveals them again rather than re-fetching anything.
+   */
+  protected readonly showAllQuarters = signal(false);
 
   /** Free-text search, matched against nominee and nominator name. */
   protected readonly searchQuery = signal('');
@@ -95,8 +103,19 @@ export class Review {
   /** Progress of the "Review all pending" run, or null when it isn't running. */
   protected readonly bulkProgress = signal<{ done: number; total: number } | null>(null);
 
-  protected readonly counts = computed(() => {
+  /** Rows for the current programme round, unless "show all quarters" is on. */
+  protected readonly quarterRows = computed(() => {
     const rows = this.rows();
+    return this.showAllQuarters() ? rows : rows.filter((row) => row.quarter === this.quarter);
+  });
+
+  /** How many rows "show all quarters" would add back in — drives the toggle's label. */
+  protected readonly hiddenQuarterCount = computed(
+    () => this.rows().length - this.quarterRows().length,
+  );
+
+  protected readonly counts = computed(() => {
+    const rows = this.quarterRows();
     return {
       ALL: rows.length,
       PENDING: rows.filter((row) => row.status === 'PENDING').length,
@@ -116,7 +135,7 @@ export class Review {
     const filter = this.filter();
     const categories = this.selectedCategories();
     const query = this.searchQuery().trim().toLowerCase();
-    let rows = this.rows();
+    let rows = this.quarterRows();
 
     if (filter === 'SHORTLIST') {
       rows = rows.filter((row) => row.favourite);
@@ -141,7 +160,7 @@ export class Review {
 
   /** Nominations Claude hasn't seen yet — what "Review all pending" works through. */
   protected readonly unreviewed = computed(() =>
-    this.rows().filter((row) => row.claudeReview === null),
+    this.quarterRows().filter((row) => row.claudeReview === null),
   );
 
   constructor() {
@@ -164,6 +183,17 @@ export class Review {
 
   protected isBusy(id: number): boolean {
     return this.busyIds().has(id);
+  }
+
+  /**
+   * Once a quarter's reviewing window has passed, its rows are read-only —
+   * Review/Accept/Reject are greyed out so a closed quarter can't quietly
+   * change after the fact. Not a hard backend guarantee (the bulk "Ask
+   * Claude" run and the API itself still allow it), just a UI guard against
+   * doing it by accident.
+   */
+  protected isClosedQuarter(row: NominationView): boolean {
+    return row.quarter !== this.quarter;
   }
 
   protected isCategorySelected(label: string): boolean {
@@ -206,6 +236,19 @@ export class Review {
     return FLAG_CLASSES[tagName] ?? '';
   }
 
+  /**
+   * Colour band for the reciprocity stat — low is unremarkable, high starts
+   * to look like a closed nominate-each-other loop. Bands match the flag
+   * chip palette (weak/neutral, routine/amber, reciprocal/red) rather than
+   * introducing a new colour language.
+   */
+  protected reciprocityClass(percent: number): string {
+    if (percent >= 70) {
+      return 'detail__stat-value--high';
+    }
+    return percent >= 40 ? 'detail__stat-value--medium' : 'detail__stat-value--low';
+  }
+
   protected toggleExpanded(id: number): void {
     this.expandedId.update((current) => (current === id ? null : id));
     // Sub-dropdowns belong to whichever row is open — don't leak "open" state
@@ -220,6 +263,11 @@ export class Review {
 
   protected toggleHistory(): void {
     this.historyOpen.update((open) => !open);
+  }
+
+  /** Same `status--*` colour class the row's own status pill uses. */
+  protected statusClass(status: ReviewStatus): string {
+    return 'status--' + status.toLowerCase();
   }
 
   protected isVoucherSent(id: number): boolean {

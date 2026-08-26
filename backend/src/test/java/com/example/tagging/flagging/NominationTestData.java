@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 /**
  * Small builder for {@link Nomination} instances in tests, so each test only has
- * to set the fields it actually cares about instead of the full 12-arg record.
+ * to set the fields it actually cares about instead of the full 13-arg record.
  */
 final class NominationTestData {
 
@@ -21,6 +21,7 @@ final class NominationTestData {
     private String how = "with excellence";
     private String practice = "Engineering";
     private String location = "London";
+    private String quarter = "Q4 2026";
 
     static NominationTestData nomination() {
         return new NominationTestData();
@@ -58,8 +59,13 @@ final class NominationTestData {
         return this;
     }
 
+    NominationTestData quarter(String quarter) {
+        this.quarter = quarter;
+        return this;
+    }
+
     Nomination build() {
         return new Nomination(id, timestamp, nominatorName, nominatorEmail, nomineeName, nomineeEmail,
-                justification, category, what, how, practice, location);
+                justification, category, what, how, practice, location, quarter);
     }
 }

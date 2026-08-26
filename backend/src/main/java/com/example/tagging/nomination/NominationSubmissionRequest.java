@@ -47,6 +47,7 @@ public record NominationSubmissionRequest(
         require(how, "how");
         require(nominatorName, "nominatorName");
         require(nominatorEmail, "nominatorEmail");
+        require(quarter, "quarter");
 
         // The frontend already blocks this in the form, but the API is the real
         // boundary - anyone calling it directly should hit the same rule.
@@ -73,7 +74,8 @@ public record NominationSubmissionRequest(
                 require(how, "how"),
                 category,
                 practice,
-                location);
+                location,
+                require(quarter, "quarter"));
     }
 
     private static String require(String value, String field) {

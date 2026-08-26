@@ -1,0 +1,147 @@
+[
+  {
+    "name": "Digital, Data & Cloud",
+    "type": "DIVISION",
+    "size": 480
+  },
+  {
+    "name": "Enterprise Applications",
+    "type": "DIVISION",
+    "size": 410
+  },
+  {
+    "name": "Business Support",
+    "type": "DIVISION",
+    "size": 260
+  },
+  {
+    "name": "India Delivery Centre",
+    "type": "DIVISION",
+    "size": 620
+  },
+  {
+    "name": "Public Sector",
+    "type": "DIVISION",
+    "size": 340
+  },
+  {
+    "name": "SAM & Licence Management",
+    "type": "DIVISION",
+    "size": 70
+  },
+  {
+    "name": "Services Reliability Group",
+    "type": "DIVISION",
+    "size": 300
+  },
+  {
+    "name": "Administration",
+    "type": "DEPARTMENT",
+    "size": 19
+  },
+  {
+    "name": "Comm Deal Execution",
+    "type": "DEPARTMENT",
+    "size": 22
+  },
+  {
+    "name": "Consulting & Advisory",
+    "type": "DEPARTMENT",
+    "size": 19
+  },
+  {
+    "name": "Corporate",
+    "type": "DEPARTMENT",
+    "size": 19
+  },
+  {
+    "name": "GCC Growth",
+    "type": "DEPARTMENT",
+    "size": 21
+  },
+  {
+    "name": "IT Services & Operations",
+    "type": "DEPARTMENT",
+    "size": 11
+  },
+  {
+    "name": "People & Culture",
+    "type": "DEPARTMENT",
+    "size": 10
+  },
+  {
+    "name": "DDC Cloud AWS Jaguar",
+    "type": "DEPARTMENT",
+    "size": 21
+  },
+  {
+    "name": "DDC Digital Quality Engineering",
+    "type": "DEPARTMENT",
+    "size": 20
+  },
+  {
+    "name": "DDC Private Sector Management",
+    "type": "DEPARTMENT",
+    "size": 10
+  },
+  {
+    "name": "EA APP INTG Ext & Intg Europe",
+    "type": "DEPARTMENT",
+    "size": 8
+  },
+  {
+    "name": "EA MS Cloud Europe",
+    "type": "DEPARTMENT",
+    "size": 19
+  },
+  {
+    "name": "Bangalore IDC Business Support",
+    "type": "DEPARTMENT",
+    "size": 14
+  },
+  {
+    "name": "IPSU DAFM Payments AgSchemes",
+    "type": "DEPARTMENT",
+    "size": 9
+  },
+  {
+    "name": "IPSU DAFM TLM International Trade",
+    "type": "DEPARTMENT",
+    "size": 7
+  },
+  {
+    "name": "IPSU Dept of Justice",
+    "type": "DEPARTMENT",
+    "size": 22
+  },
+  {
+    "name": "IPSU ESB",
+    "type": "DEPARTMENT",
+    "size": 6
+  },
+  {
+    "name": "SAM Core",
+    "type": "DEPARTMENT",
+    "size": 17
+  },
+  {
+    "name": "ASPIRE GSC Service Desk",
+    "type": "DEPARTMENT",
+    "size": 19
+  },
+  {
+    "name": "Managed Services",
+    "type": "DEPARTMENT",
+    "size": 10
+  },
+  {
+    "name": "SRG Applications Microsoft 2",
+    "type": "DEPARTMENT",
+    "size": 5
+  },
+  {
+    "name": "SRG Platform Services OCI & AWS",
+    "type": "DEPARTMENT",
+    "size": 21
+  }
+]

@@ -14,7 +14,7 @@ class NominationTest {
     void fromPartsBuildsCombinedJustificationAndCategoryLabel() {
         Nomination nomination = Nomination.fromParts(7, WHEN, "Alice", "alice@example.com",
                 "Bob", "bob@example.com", "shipped the release", "with real drive",
-                NominationCategory.PERFORMANCE_AND_EFFICIENCY, "Engineering", "London");
+                NominationCategory.PERFORMANCE_AND_EFFICIENCY, "Engineering", "London", "Q2 2025");
 
         assertThat(nomination.id()).isEqualTo(7);
         assertThat(nomination.what()).isEqualTo("shipped the release");
@@ -24,6 +24,7 @@ class NominationTest {
                 .isEqualTo("WHAT: shipped the release\n\nHOW: with real drive");
         assertThat(nomination.practice()).isEqualTo("Engineering");
         assertThat(nomination.location()).isEqualTo("London");
+        assertThat(nomination.quarter()).isEqualTo("Q2 2025");
     }
 
     @Test
@@ -31,7 +32,7 @@ class NominationTest {
         String blob = "WHAT: delivered the migration\n\nHOW: showed excellence";
 
         Nomination nomination = Nomination.fromJustification(3, WHEN, "Alice", "alice@example.com",
-                "Bob", "bob@example.com", blob, "Customer Impact");
+                "Bob", "bob@example.com", blob, "Customer Impact", "Q2 2025");
 
         assertThat(nomination.what()).isEqualTo("delivered the migration");
         assertThat(nomination.how()).isEqualTo("showed excellence");
@@ -46,7 +47,7 @@ class NominationTest {
         String blob = "WHAT: just a single blob of text with no how section";
 
         Nomination nomination = Nomination.fromJustification(4, WHEN, "Alice", "alice@example.com",
-                "Bob", "bob@example.com", blob, "Customer Impact");
+                "Bob", "bob@example.com", blob, "Customer Impact", "Q2 2025");
 
         assertThat(nomination.what()).isEqualTo("just a single blob of text with no how section");
         assertThat(nomination.how()).isEmpty();
@@ -57,7 +58,7 @@ class NominationTest {
         String blob = "he was consistently excellent all quarter";
 
         Nomination nomination = Nomination.fromJustification(5, WHEN, "Alice", "alice@example.com",
-                "Bob", "bob@example.com", blob, "Customer Impact");
+                "Bob", "bob@example.com", blob, "Customer Impact", "Q2 2025");
 
         assertThat(nomination.what()).isEqualTo(blob);
         assertThat(nomination.how()).isEmpty();

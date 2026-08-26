@@ -23,6 +23,13 @@ public class NominationExcelLoader {
 
     private static final int HEADER_ROW_INDEX = 0;
 
+    /**
+     * These rows predate the {@code quarter} field entirely (the spreadsheet
+     * has no such column), so every row from it is stamped as the current
+     * programme round - see {@link Quarter#CURRENT_QUARTER}.
+     */
+    private static final String LEGACY_SEED_QUARTER = Quarter.CURRENT_QUARTER;
+
     private final String filePath;
 
     public NominationExcelLoader(
@@ -68,7 +75,7 @@ public class NominationExcelLoader {
         String category = stringValue(row.getCell(7));
 
         return Nomination.fromJustification(id, timestamp, nominatorName, nominatorEmail, nomineeName,
-                nomineeEmail, justification, category);
+                nomineeEmail, justification, category, LEGACY_SEED_QUARTER);
     }
 
     private String stringValue(Cell cell) {

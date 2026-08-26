@@ -145,7 +145,6 @@ the logo. Changing them there re-themes the whole app.
   `nomination.model.ts`); the other four categories have the official wording.
 - `CURRENT_QUARTER` in `core/models/nomination.model.ts` is set by hand — update it
   each nomination round.
-- One-nomination-per-person is signposted in the UI but not enforced.
 - The logo is the star glyph only, with no "STAR AWARD" wordmark, so the login
   screen shows no product name.
 - `environment.useMockApi` (localStorage fallback in `NominationService`) still

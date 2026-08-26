@@ -25,10 +25,17 @@ function sampleRow(overrides: Partial<NominationView> = {}): NominationView {
     justification: 'WHAT: did a thing\n\nHOW: with excellence',
     practice: 'Engineering',
     location: 'Dublin',
+    quarter: 'Q4 2026',
     flags: [],
     claudeReview: null,
     status: 'PENDING',
     favourite: false,
+    nominatorProfile: null,
+    nomineeProfile: null,
+    reciprocityPercent: 0,
+    pastNominationsCount: 0,
+    nominatorHistory: [],
+    nomineeHistory: [],
     ...overrides,
   };
 }

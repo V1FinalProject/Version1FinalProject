@@ -157,6 +157,20 @@ $dashboard-width: 82rem;
   justify-content: flex-start;
 }
 
+/**
+ * The "Ask Claude" and "closed quarters" buttons each appear/disappear on
+ * their own condition. Grouping them here with a fixed internal gap, pinned
+ * to the right via margin-left: auto, means one showing up or vanishing only
+ * ever shifts the other by its own width — the tabs on the left never move.
+ */
+.toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
 .tabs {
   display: flex;
   flex-wrap: wrap;
@@ -515,6 +529,20 @@ $dashboard-width: 82rem;
   border-color: #eec3d9;
 }
 
+/* Marks a row's own quarter as closed, next to its date — a second, readable
+   signal alongside the row's greyed-out buttons rather than relying on
+   button state alone to say "this is a past quarter". Neutral on purpose:
+   it's informational, not a flag. */
+.chip--closed {
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-subtle);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  cursor: help;
+}
+
 .flags {
   display: flex;
   flex-wrap: wrap;
@@ -781,10 +809,9 @@ $dashboard-width: 82rem;
   color: var(--brand-navy-700);
 }
 
-/* Team size / company size / reciprocity / past nominations — no backend
-   field exists for any of these yet (see docs), so they render as
-   placeholders rather than fabricated numbers a reviewer could mistake for
-   a real signal. */
+/* Team size / company size / reciprocity / past nominations. Team/company
+   size and past-nomination count show an em dash when there's no matching
+   org_units row rather than a fabricated number. */
 .detail__stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
@@ -792,7 +819,7 @@ $dashboard-width: 82rem;
   margin-top: 0.875rem;
   padding: 0.75rem;
   background: rgba(255, 255, 255, 0.55);
-  border: 1px dashed var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
 }
 
@@ -815,6 +842,22 @@ $dashboard-width: 82rem;
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-subtle);
+}
+
+/* Reciprocity colour bands — low reuses the accept-green, high the
+   reject-red, so it reads on the same scale as the rest of the dashboard
+   rather than introducing a new colour language. Medium reuses the amber
+   already used for the "Weak Justification" flag chip. */
+.detail__stat-value--low {
+  color: var(--success);
+}
+
+.detail__stat-value--medium {
+  color: #8a4b00;
+}
+
+.detail__stat-value--high {
+  color: var(--danger);
 }
 
 .detail__reason-row {
@@ -887,6 +930,77 @@ $dashboard-width: 82rem;
 
 .detail__subpanel {
   margin-top: 0.75rem;
+}
+
+.detail__history {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 45rem) {
+  .detail__history {
+    grid-template-columns: 1fr;
+  }
+}
+
+/**
+ * Same purple/blue coding as the nominator/nominee cards above
+ * (.detail__card--nominator / --nominee) so the two history columns read as
+ * "belonging to" the same two people at a glance.
+ */
+.detail__history-col {
+  padding: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+
+.detail__history-col--nominator {
+  background: #f3ecfb;
+  border-color: #dcc7f0;
+}
+
+.detail__history-col--nominee {
+  background: #eaf2fb;
+  border-color: #bcdcec;
+}
+
+.detail__history-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.detail__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail__history-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.625rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--text);
+}
+
+.detail__history-quarter {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/** The subject's own name in a history row, when this pair nominated each other. */
+.detail__history-name--reciprocal {
+  color: var(--danger);
 }
 
 .orgchart__pair {
