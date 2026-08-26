@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { CURRENT_QUARTER, NOMINATION_CATEGORIES } from '../../core/models/nomination.model';
-import { NominationView, ReviewStatus } from '../../core/models/review.model';
+import { NominationHistoryEntry, NominationView, ReviewStatus } from '../../core/models/review.model';
 import { ReviewService } from '../../core/services/review.service';
 
 /** Which rows the table is showing. */
@@ -26,6 +26,9 @@ const FILTER_TABS: readonly FilterTab[] = [
  * entry here — e.g. one from a checker added later — just gets the neutral
  * default `.chip--flag` colour rather than breaking.
  */
+/** How many recent outcomes the nominator's "form" strip shows. */
+const FORM_SIZE = 5;
+
 const FLAG_CLASSES: Readonly<Record<string, string>> = {
   'Weak Justification': 'chip--flag-weak',
   'Routine Task Language': 'chip--flag-routine',
@@ -318,6 +321,55 @@ export class Review {
   /** Same `status--*` colour class the row's own status pill uses. */
   protected statusClass(status: ReviewStatus): string {
     return 'status--' + status.toLowerCase();
+  }
+
+  /**
+   * The nominator's own "form" — their last few outbound nominations (not
+   * ones they received), most recent first, so a reviewer can spot a pattern
+   * of rejected or flagged submissions at a glance. Padded to a fixed length
+   * with nulls so the strip is the same width whether this nominator has 5
+   * past nominations or none.
+   */
+  protected nominatorForm(row: NominationView): (NominationHistoryEntry | null)[] {
+    const outbound = row.nominatorHistory
+      .filter((entry) => entry.direction === 'OUTBOUND')
+      .slice(0, FORM_SIZE);
+    return [...outbound, ...Array<null>(FORM_SIZE - outbound.length).fill(null)];
+  }
+
+  protected formIconClass(status: ReviewStatus): string {
+    return 'form-icon--' + status.toLowerCase();
+  }
+
+  protected formTooltip(entry: NominationHistoryEntry): string {
+    const status = entry.status.charAt(0) + entry.status.slice(1).toLowerCase();
+    return `${entry.quarter} · ${entry.counterpartName} · ${status}`;
+  }
+
+  /**
+   * Jumps to another nomination from the form strip or history list. The
+   * target might be hidden by the current tab, quarter, office filter or
+   * search, so this clears all of them — switching to the target's own
+   * quarter — before expanding and scrolling to it rather than leaving the
+   * reviewer looking at an unchanged table.
+   */
+  protected jumpToNomination(id: number): void {
+    const target = this.rows().find((row) => row.id === id);
+    if (target) {
+      this.selectedQuarter.set(target.quarter);
+    }
+    this.filter.set('ALL');
+    this.selectedOffice.set('');
+    this.searchQuery.set('');
+    this.clearCategories();
+    this.categoryMenuOpen.set(false);
+    this.expandedId.set(id);
+    this.orgChartOpen.set(false);
+    this.historyOpen.set(false);
+
+    setTimeout(() => {
+      document.getElementById(`nomination-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   }
 
   protected isVoucherSent(id: number): boolean {
