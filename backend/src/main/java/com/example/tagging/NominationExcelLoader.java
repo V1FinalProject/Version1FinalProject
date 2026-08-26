@@ -26,10 +26,9 @@ public class NominationExcelLoader {
     /**
      * These rows predate the {@code quarter} field entirely (the spreadsheet
      * has no such column), so every row from it is stamped as the current
-     * programme round - update by hand alongside the frontend's
-     * {@code CURRENT_QUARTER} each round, same as that constant.
+     * programme round - see {@link Quarter#CURRENT_QUARTER}.
      */
-    private static final String LEGACY_SEED_QUARTER = "Q4 2026";
+    private static final String LEGACY_SEED_QUARTER = Quarter.CURRENT_QUARTER;
 
     private final String filePath;
 

@@ -191,7 +191,12 @@
 
               <td>
                 {{ row.nominatorName }}
-                <span class="cell-sub">{{ row.timestamp | date: 'd MMM yyyy' }}</span>
+                <span class="cell-sub">
+                  {{ row.timestamp | date: 'd MMM yyyy' }}
+                  @if (isClosedQuarter(row)) {
+                    &middot; <span class="chip chip--closed" [title]="closedQuarterTitle">{{ row.quarter }} &middot; closed</span>
+                  }
+                </span>
               </td>
 
               <td><span class="chip">{{ row.category }}</span></td>

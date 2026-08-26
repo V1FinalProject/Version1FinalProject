@@ -16,6 +16,15 @@ import java.util.regex.Pattern;
  */
 record Quarter(int year, int number) implements Comparable<Quarter> {
 
+    /**
+     * The programme round currently open for nominating and reviewing - the
+     * backend's copy of what the frontend calls {@code CURRENT_QUARTER}.
+     * There's no way to share one constant across the language boundary, so
+     * this is updated by hand alongside the frontend's each round, same as
+     * {@link NominationExcelLoader}'s old per-loader copy this replaces.
+     */
+    static final String CURRENT_QUARTER = "Q4 2026";
+
     private static final Pattern LABEL = Pattern.compile("Q([1-4])\\s+(\\d{4})");
 
     static Quarter parse(String label) {

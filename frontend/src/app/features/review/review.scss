@@ -529,6 +529,20 @@ $dashboard-width: 82rem;
   border-color: #eec3d9;
 }
 
+/* Marks a row's own quarter as closed, next to its date — a second, readable
+   signal alongside the row's greyed-out buttons rather than relying on
+   button state alone to say "this is a past quarter". Neutral on purpose:
+   it's informational, not a flag. */
+.chip--closed {
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-subtle);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  cursor: help;
+}
+
 .flags {
   display: flex;
   flex-wrap: wrap;

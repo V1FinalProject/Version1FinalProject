@@ -59,20 +59,25 @@ public class ReciprocityService {
         return (int) Math.round((realizedPairs - 1) * 100.0 / (possiblePairs - 1));
     }
 
-    /** How many other times this nominee has been nominated, any quarter, any status. */
+    /** How many other times this nominee has been nominated in a closed quarter, any status. */
     public int pastNominationsCount(Nomination target, List<Nomination> allNominations) {
         return personHistory(target.nomineeEmail(), target.id(), allNominations).size();
     }
 
     /**
      * Every other nomination touching this person - either as nominator or as
-     * nominee - most recent first. Replaces the old nominator-only/nominee-only
-     * split so the detail panel can show a person's full history, not just
-     * half of it.
+     * nominee - most recent first, from closed quarters only. Replaces the old
+     * nominator-only/nominee-only split so the detail panel can show a
+     * person's full history, not just half of it.
+     *
+     * The open quarter ({@link Quarter#CURRENT_QUARTER}) is excluded - it
+     * hasn't closed yet, so a nomination still in flight this round isn't
+     * "past" regardless of whether this person is its nominator or nominee.
      */
     public List<Nomination> personHistory(String personEmail, int excludeId, List<Nomination> allNominations) {
         return allNominations.stream()
                 .filter(other -> other.id() != excludeId)
+                .filter(other -> !other.quarter().equals(Quarter.CURRENT_QUARTER))
                 .filter(other -> other.nominatorEmail().equalsIgnoreCase(personEmail)
                         || other.nomineeEmail().equalsIgnoreCase(personEmail))
                 .sorted(Comparator.comparing(Nomination::timestamp).reversed())
