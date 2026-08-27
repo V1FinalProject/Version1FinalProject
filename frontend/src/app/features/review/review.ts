@@ -151,7 +151,6 @@ export class Review {
       ACCEPTED: rows.filter((row) => row.status === 'ACCEPTED').length,
       REJECTED: rows.filter((row) => row.status === 'REJECTED').length,
       SHORTLIST: rows.filter((row) => row.favourite).length,
-      flagged: rows.filter((row) => row.flags.length > 0).length,
     };
   });
 

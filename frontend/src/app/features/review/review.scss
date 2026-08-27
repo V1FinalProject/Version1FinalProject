@@ -83,59 +83,6 @@ $dashboard-width: 82rem;
   white-space: nowrap;
 }
 
-/* Stat tiles -------------------------------------------------------------- */
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  padding: 1rem 1.25rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--border-strong);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-}
-
-.stat--accepted {
-  border-left-color: var(--success);
-}
-
-.stat--rejected {
-  border-left-color: var(--danger);
-}
-
-.stat--shortlist {
-  border-left-color: #c0265e;
-}
-
-.stat--flagged {
-  border-left-color: var(--brand-teal-600);
-}
-
-.stat__value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-  color: var(--brand-navy-900);
-}
-
-.stat__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-subtle);
-}
-
 /* Toolbar ----------------------------------------------------------------- */
 
 .toolbar {
