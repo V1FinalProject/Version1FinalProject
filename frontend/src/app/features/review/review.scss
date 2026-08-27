@@ -356,12 +356,10 @@ $dashboard-width: 82rem;
   color: var(--text-subtle);
 }
 
-/* Right-aligned so the heart sits in the same spot on every row instead of
-   trailing right after the "Pending" revert button when one shows. The
-   header needs the more specific `.table thead th.col-actions` — plain
+/* The header needs the more specific `.table thead th.col-actions` — plain
    `.col-actions` loses to `.table thead th`'s own text-align on specificity. */
 .col-actions {
-  width: 7.5rem;
+  width: 3rem;
 }
 
 .table thead th.col-actions {

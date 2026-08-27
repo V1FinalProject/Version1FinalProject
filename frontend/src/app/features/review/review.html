@@ -218,20 +218,6 @@
 
               <td class="col-actions">
                 <div class="actions">
-                  @if (row.status === 'ACCEPTED') {
-                    <!-- Accepting only happens from the expanded nomination now, to avoid an
-                         accidental click here — but the way back to Pending stays, so a wrong
-                         accept can still be undone without opening the row. -->
-                    <button
-                      type="button"
-                      class="btn-mini btn-mini--accept btn-mini--on"
-                      [disabled]="isBusy(row.id) || isClosedQuarter(row)"
-                      [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
-                      (click)="$event.stopPropagation(); decide(row, 'ACCEPTED')"
-                    >
-                      Pending
-                    </button>
-                  }
                   <button
                     type="button"
                     class="heart"
