@@ -44,4 +44,12 @@ export class ReviewService {
   requestClaudeReview(id: number): Promise<NominationView> {
     return firstValueFrom(this.http.post<NominationView>(`${this.baseUrl}/${id}/claude-review`, {}));
   }
+
+  /**
+   * Records "Mark voucher sent" being ticked or unticked in the audit log.
+   * There's no persisted voucher-sent field yet, so this is a log-only write.
+   */
+  logVoucherSent(id: number, sent: boolean): Promise<void> {
+    return firstValueFrom(this.http.put<void>(`${this.baseUrl}/${id}/voucher-sent`, { sent }));
+  }
 }

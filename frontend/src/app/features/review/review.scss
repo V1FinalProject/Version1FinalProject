@@ -1104,9 +1104,15 @@ $dashboard-width: 82rem;
 /* CSV/PDF aren't wired up yet (see Review.exportAs) — this is the same
    toggle-button-plus-panel pattern as .category-filter, reused so it doesn't
    read as a different kind of control. */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
 .export-menu {
   position: relative;
-  margin-top: 1rem;
 }
 
 .export-menu__panel {

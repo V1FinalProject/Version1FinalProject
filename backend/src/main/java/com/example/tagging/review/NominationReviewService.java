@@ -1,5 +1,6 @@
 package com.example.tagging.review;
 
+import com.example.tagging.auditlog.AuditLogService;
 import com.example.tagging.nomination.NominationHistoryEntry;
 import com.example.tagging.org.OrgSizeLookup;
 import com.example.tagging.claude.ClaudeNominationReviewer;
@@ -42,10 +43,11 @@ public class NominationReviewService {
     private final UserAccountRepository users;
     private final OrgSizeLookup orgSizes;
     private final ReciprocityService reciprocity;
+    private final AuditLogService auditLog;
 
     public NominationReviewService(NominationStore nominations, ReviewStateStore reviewState,
             TaggingService taggingService, ClaudeNominationReviewer claudeReviewer, UserAccountRepository users,
-            OrgSizeLookup orgSizes, ReciprocityService reciprocity) {
+            OrgSizeLookup orgSizes, ReciprocityService reciprocity, AuditLogService auditLog) {
         this.nominations = nominations;
         this.reviewState = reviewState;
         this.taggingService = taggingService;
@@ -53,6 +55,7 @@ public class NominationReviewService {
         this.users = users;
         this.orgSizes = orgSizes;
         this.reciprocity = reciprocity;
+        this.auditLog = auditLog;
     }
 
     /** Every nomination, newest first, with its flags and current review state. */
@@ -74,6 +77,7 @@ public class NominationReviewService {
      */
     public NominationReceipt submit(NominationSubmissionRequest request) {
         Nomination stored = nominations.add(request);
+        auditLog.record(stored.id(), stored.nomineeName(), stored.nominatorName(), "Nomination submitted");
 
         try {
             reviewState.saveClaudeReview(stored.id(), review(stored));
@@ -124,16 +128,31 @@ public class NominationReviewService {
 
     /** Accept, reject, or move a nomination back to pending. The reviewer has the final say. */
     public NominationView decide(int id, ReviewStatus status) {
-        require(id);
+        Nomination nomination = require(id);
         reviewState.setStatus(id, status);
+        auditLog.record(id, nomination.nomineeName(), nomination.nominatorName(), "Status changed to " + status);
         return find(id);
     }
 
     /** Star or unstar a nomination for the reviewer's shortlist. */
     public NominationView setFavourite(int id, boolean favourite) {
-        require(id);
+        Nomination nomination = require(id);
         reviewState.setFavourite(id, favourite);
+        auditLog.record(id, nomination.nomineeName(), nomination.nominatorName(),
+                favourite ? "Favourited" : "Unfavourited");
         return find(id);
+    }
+
+    /**
+     * Records the reviewer ticking or unticking "Mark voucher sent" in the
+     * audit trail. There's no persisted voucher-sent field yet - see
+     * {@link com.example.tagging.nomination.VoucherSentRequest} - so this is
+     * a log-only write.
+     */
+    public void logVoucherSent(int id, boolean sent) {
+        Nomination nomination = require(id);
+        auditLog.record(id, nomination.nomineeName(), nomination.nominatorName(),
+                sent ? "Marked voucher sent" : "Unmarked voucher sent");
     }
 
     private NominationView toView(Nomination nomination, List<Nomination> allNominations) {

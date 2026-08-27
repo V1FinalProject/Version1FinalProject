@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { CURRENT_QUARTER, NOMINATION_CATEGORIES } from '../../core/models/nomination.model';
 import { NominationHistoryEntry, NominationView, ReviewStatus } from '../../core/models/review.model';
 import { ReviewService } from '../../core/services/review.service';
@@ -51,7 +52,7 @@ const FLAG_CLASSES: Readonly<Record<string, string>> = {
  */
 @Component({
   selector: 'app-review',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './review.html',
   styleUrl: './review.scss',
 })
@@ -379,15 +380,19 @@ export class Review {
   }
 
   protected toggleVoucherSent(id: number): void {
+    const sent = !this.isVoucherSent(id);
     this.voucherSentIds.update((current) => {
       const next = new Set(current);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
+      if (sent) {
         next.add(id);
+      } else {
+        next.delete(id);
       }
       return next;
     });
+    // Best-effort audit entry — the checkbox itself is UI-only state, so a
+    // failed write here shouldn't roll it back or interrupt the reviewer.
+    void this.reviews.logVoucherSent(id, sent).catch(() => {});
   }
 
   protected async toggleFavourite(row: NominationView): Promise<void> {
