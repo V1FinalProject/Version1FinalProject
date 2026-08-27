@@ -410,11 +410,11 @@ $dashboard-width: 82rem;
 }
 
 /* Right-aligned so the heart sits in the same spot on every row instead of
-   trailing right after however many decision buttons happen to show. The
+   trailing right after the "Pending" revert button when one shows. The
    header needs the more specific `.table thead th.col-actions` — plain
    `.col-actions` loses to `.table thead th`'s own text-align on specificity. */
 .col-actions {
-  width: 13.5rem;
+  width: 7.5rem;
 }
 
 .table thead th.col-actions {
@@ -768,6 +768,14 @@ $dashboard-width: 82rem;
   border-color: #dcc7f0;
 }
 
+.detail__card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .detail__eyebrow {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -952,9 +960,8 @@ $dashboard-width: 82rem;
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
   gap: 1.25rem;
-  /* Same 0.875rem rhythm as the field-grid and stat-grid above it, and as
-     .detail__card-actions below — every section in this card opens the
-     same distance from the one before it. */
+  /* Same 0.875rem rhythm as the field-grid and stat-grid above it — every
+     section in this card opens the same distance from the one before it. */
   margin-top: 0.875rem;
 }
 
@@ -994,15 +1001,12 @@ $dashboard-width: 82rem;
   }
 }
 
-/* Accept/reject now live here, bottom-right of the nominee card, instead of
-   on the collapsed row — the deliberate second step for accepting. */
+/* Accept/reject live here, top-right of the nominee card, instead of on the
+   collapsed row — the deliberate second step for accepting. */
 .detail__card-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-shrink: 0;
   gap: 0.5rem;
-  margin-top: 0.875rem;
-  padding-top: 0.875rem;
-  border-top: 1px solid #bcdcec;
 }
 
 /* Nested sub-dropdowns — org chart, previous nominations ---------------- */

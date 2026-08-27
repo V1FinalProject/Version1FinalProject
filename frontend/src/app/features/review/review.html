@@ -164,7 +164,7 @@
             <th scope="col">Category</th>
             <th scope="col">Flags</th>
             <th scope="col">Status</th>
-            <th scope="col" class="col-actions">Decision</th>
+            <th scope="col" class="col-actions">Favourite</th>
           </tr>
         </thead>
         <tbody>
@@ -261,16 +261,6 @@
                   }
                   <button
                     type="button"
-                    class="btn-mini btn-mini--reject"
-                    [class.btn-mini--on]="row.status === 'REJECTED'"
-                    [disabled]="isBusy(row.id) || isClosedQuarter(row)"
-                    [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
-                    (click)="$event.stopPropagation(); decide(row, 'REJECTED')"
-                  >
-                    {{ row.status === 'REJECTED' ? 'Pending' : 'Reject' }}
-                  </button>
-                  <button
-                    type="button"
                     class="heart"
                     [class.heart--on]="row.favourite"
                     [disabled]="isBusy(row.id)"
@@ -314,8 +304,37 @@
                     </div>
 
                     <div class="detail__card detail__card--nominee">
-                      <span class="detail__eyebrow">Nominee</span>
-                      <h3 class="detail__name">{{ row.nomineeName }}</h3>
+                      <div class="detail__card-header">
+                        <div>
+                          <span class="detail__eyebrow">Nominee</span>
+                          <h3 class="detail__name">{{ row.nomineeName }}</h3>
+                        </div>
+
+                        <!-- Accepting only happens from the expanded nomination — a deliberate
+                             second step so it isn't one accidental click from the table. -->
+                        <div class="detail__card-actions">
+                          <button
+                            type="button"
+                            class="btn-mini btn-mini--accept"
+                            [class.btn-mini--on]="row.status === 'ACCEPTED'"
+                            [disabled]="isBusy(row.id) || isClosedQuarter(row)"
+                            [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
+                            (click)="decide(row, 'ACCEPTED')"
+                          >
+                            {{ row.status === 'ACCEPTED' ? 'Pending' : 'Accept' }}
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-mini btn-mini--reject"
+                            [class.btn-mini--on]="row.status === 'REJECTED'"
+                            [disabled]="isBusy(row.id) || isClosedQuarter(row)"
+                            [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
+                            (click)="decide(row, 'REJECTED')"
+                          >
+                            {{ row.status === 'REJECTED' ? 'Pending' : 'Reject' }}
+                          </button>
+                        </div>
+                      </div>
 
                       <div class="detail__field-grid">
                         <div class="detail__field">
@@ -424,31 +443,6 @@
                             }
                           </div>
                         </div>
-                      </div>
-
-                      <!-- Accepting lives here now, not on the collapsed row — a deliberate
-                           second step so it isn't one accidental click from the table. -->
-                      <div class="detail__card-actions">
-                        <button
-                          type="button"
-                          class="btn-mini btn-mini--accept"
-                          [class.btn-mini--on]="row.status === 'ACCEPTED'"
-                          [disabled]="isBusy(row.id) || isClosedQuarter(row)"
-                          [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
-                          (click)="decide(row, 'ACCEPTED')"
-                        >
-                          {{ row.status === 'ACCEPTED' ? 'Pending' : 'Accept' }}
-                        </button>
-                        <button
-                          type="button"
-                          class="btn-mini btn-mini--reject"
-                          [class.btn-mini--on]="row.status === 'REJECTED'"
-                          [disabled]="isBusy(row.id) || isClosedQuarter(row)"
-                          [attr.title]="isClosedQuarter(row) ? closedQuarterTitle : null"
-                          (click)="decide(row, 'REJECTED')"
-                        >
-                          {{ row.status === 'REJECTED' ? 'Pending' : 'Reject' }}
-                        </button>
                       </div>
                     </div>
 
