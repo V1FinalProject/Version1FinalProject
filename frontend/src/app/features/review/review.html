@@ -632,7 +632,9 @@
     @if (exportMenuOpen()) {
       <div class="export-menu__panel" role="group" aria-label="Export the current view">
         <button type="button" class="export-menu__option" (click)="exportAs('CSV')">Export as CSV</button>
+        <button type="button" class="export-menu__option" (click)="exportAs('XLSX')">Export as Excel</button>
         <button type="button" class="export-menu__option" (click)="exportAs('PDF')">Export as PDF</button>
+        <button type="button" class="export-menu__option" (click)="exportAs('JSON')">Export as JSON</button>
       </div>
     }
   </div>

@@ -3,6 +3,7 @@ import { Component, computed, HostListener, inject, signal } from '@angular/core
 import { CURRENT_QUARTER, NOMINATION_CATEGORIES } from '../../core/models/nomination.model';
 import { NominationHistoryEntry, NominationView, ReviewStatus } from '../../core/models/review.model';
 import { ReviewService } from '../../core/services/review.service';
+import { ExportFormat, exportNominations } from './review-export';
 
 /** Which rows the table is showing. */
 export type ReviewFilter = ReviewStatus | 'ALL' | 'SHORTLIST';
@@ -102,7 +103,7 @@ export class Review {
   protected readonly selectedCategories = signal<ReadonlySet<string>>(new Set());
   protected readonly categoryMenuOpen = signal(false);
 
-  /** The "Export as..." menu beneath the table — CSV/PDF aren't wired up yet. */
+  /** The "Export as..." menu beneath the table. */
   protected readonly exportMenuOpen = signal(false);
 
   /** The one row whose detail panel is open, if any. */
@@ -275,12 +276,14 @@ export class Review {
   }
 
   /**
-   * Placeholder — CSV/PDF export isn't wired up yet, so this just closes the
-   * menu. Kept as a real handler (rather than a dead link) so the button
-   * still behaves like a button.
+   * Exports exactly what the table is currently showing — same tab, category,
+   * office and search filters as the reviewer sees on screen — rather than
+   * every nomination in the quarter.
    */
-  protected exportAs(_format: 'CSV' | 'PDF'): void {
+  protected exportAs(format: ExportFormat): void {
     this.exportMenuOpen.set(false);
+    const filename = `nominations-${this.selectedQuarter().replace(/\s+/g, '-').toLowerCase()}-${this.filter().toLowerCase()}`;
+    exportNominations(this.visibleRows(), format, filename);
   }
 
   /** Colour class for a flag chip, so each flag type reads as its own colour. */
