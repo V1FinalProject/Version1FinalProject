@@ -1,0 +1,50 @@
+<header class="banner">
+  <div class="banner__inner">
+    <h1 class="banner__title">Audit Log</h1>
+    <p class="banner__tagline">
+      Every nomination submission and reviewer action, newest first.
+    </p>
+  </div>
+</header>
+
+<div class="page">
+  @if (loadError()) {
+    <p class="alert" role="alert">
+      {{ loadError() }}
+      <button type="button" class="alert__retry" (click)="load()">Retry</button>
+    </p>
+  }
+
+  <a class="btn btn--secondary btn--compact" routerLink="/review">&larr; Back to review</a>
+
+  @if (loading()) {
+    <p class="empty">Loading&hellip;</p>
+  } @else if (rows().length === 0) {
+    <p class="empty">No actions logged yet.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nominee</th>
+            <th>Nominator</th>
+            <th>Date &amp; time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td>{{ row.nominationId }}</td>
+              <td>{{ row.nomineeName }}</td>
+              <td>{{ row.nominatorName }}</td>
+              <td>{{ row.timestamp | date: 'medium' }}</td>
+              <td>{{ row.action }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

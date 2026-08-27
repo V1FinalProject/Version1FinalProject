@@ -618,24 +618,28 @@
     </div>
   }
 
-  <div class="export-menu">
-    <button
-      type="button"
-      class="btn btn--secondary btn--compact"
-      [attr.aria-expanded]="exportMenuOpen()"
-      (click)="toggleExportMenu()"
-    >
-      Export as&hellip;
-      <span class="link__chevron" aria-hidden="true">{{ exportMenuOpen() ? '▾' : '▸' }}</span>
-    </button>
+  <div class="toolbar-actions">
+    <div class="export-menu">
+      <button
+        type="button"
+        class="btn btn--secondary btn--compact"
+        [attr.aria-expanded]="exportMenuOpen()"
+        (click)="toggleExportMenu()"
+      >
+        Export as&hellip;
+        <span class="link__chevron" aria-hidden="true">{{ exportMenuOpen() ? '▾' : '▸' }}</span>
+      </button>
 
-    @if (exportMenuOpen()) {
-      <div class="export-menu__panel" role="group" aria-label="Export the current view">
-        <button type="button" class="export-menu__option" (click)="exportAs('CSV')">Export as CSV</button>
-        <button type="button" class="export-menu__option" (click)="exportAs('XLSX')">Export as Excel</button>
-        <button type="button" class="export-menu__option" (click)="exportAs('PDF')">Export as PDF</button>
-        <button type="button" class="export-menu__option" (click)="exportAs('JSON')">Export as JSON</button>
-      </div>
-    }
+      @if (exportMenuOpen()) {
+        <div class="export-menu__panel" role="group" aria-label="Export the current view">
+          <button type="button" class="export-menu__option" (click)="exportAs('CSV')">Export as CSV</button>
+          <button type="button" class="export-menu__option" (click)="exportAs('XLSX')">Export as Excel</button>
+          <button type="button" class="export-menu__option" (click)="exportAs('PDF')">Export as PDF</button>
+          <button type="button" class="export-menu__option" (click)="exportAs('JSON')">Export as JSON</button>
+        </div>
+      }
+    </div>
+
+    <a class="btn btn--secondary btn--compact" routerLink="/logs">View logs</a>
   </div>
 </div>

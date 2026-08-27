@@ -46,4 +46,10 @@ public class NominationController {
     public NominationView favourite(@PathVariable int id, @RequestBody FavouriteRequest request) {
         return reviewService.setFavourite(id, request.favourite());
     }
+
+    /** Logs "Mark voucher sent" being ticked or unticked. Nothing is persisted beyond the audit entry. */
+    @PutMapping("/{id}/voucher-sent")
+    public void voucherSent(@PathVariable int id, @RequestBody VoucherSentRequest request) {
+        reviewService.logVoucherSent(id, request.sent());
+    }
 }

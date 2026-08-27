@@ -35,5 +35,11 @@ export const routes: Routes = [
     canActivate: [reviewerGuard],
     loadComponent: () => import('./features/review/review').then((m) => m.Review),
   },
+  {
+    path: 'logs',
+    title: 'Audit log · Star Awards',
+    canActivate: [reviewerGuard],
+    loadComponent: () => import('./features/logs/logs').then((m) => m.Logs),
+  },
   { path: '**', redirectTo: '' },
 ];
